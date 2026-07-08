@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis | Premium Hostel Management Dashboard</title>
+  <meta name="description" content="A state-of-the-art hostel management dashboard featuring 12 interactive modules, glassmorphism UI, real-time statistics, and local database simulation.">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Chart.js for premium analytics graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container" id="appMainContainer">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">H</div>
+        <div class="logo-text">Aegis Hostel</div>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <div class="menu-item active" data-tab="dashboard">
+          <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Dashboard
+        </div>
+        <div class="menu-item" data-tab="students">
+          <svg viewBox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          Students
+        </div>
+        <div class="menu-item" data-tab="hostels">
+          <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          Hostels
+        </div>
+        <div class="menu-item" data-tab="rooms">
+          <svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          Rooms
+        </div>
+        <div class="menu-item" data-tab="allocation">
+          <svg viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          Bed Allocation
+        </div>
+        <div class="menu-item" data-tab="fees">
+          <svg viewBox="0 0 24 24"><path d="M9 8h6m-5 0a3 3 0 110 6h5M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Fee Management
+        </div>
+        <div class="menu-item" data-tab="complaints">
+          <svg viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          Complaints
+        </div>
+        <div class="menu-item" data-tab="visitors">
+          <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          Visitors
+        </div>
+        <div class="menu-item" data-tab="staff">
+          <svg viewBox="0 0 24 24"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          Staff Management
+        </div>
+        <div class="menu-item" data-tab="attendance">
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          Attendance
+        </div>
+        <div class="menu-item" data-tab="noticeboard">
+          <svg viewBox="0 0 24 24"><path d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+          Notice Board
+        </div>
+        <div class="menu-item" data-tab="reports">
+          <svg viewBox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Reports
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="admin-profile" style="position: relative; justify-content: space-between; width: 100%;">
+          <div style="display:flex; align-items:center; gap:12px">
+            <div class="profile-avatar" id="sidebarAvatar">HM</div>
+            <div class="profile-info">
+              <span class="profile-name" id="sidebarUserName">Hostel Manager</span>
+              <span class="profile-role" id="sidebarUserRole">Manager</span>
+            </div>
+          </div>
+          <button class="btn btn-icon-only btn-danger" id="btnLogout" title="Logout" style="width:28px; height:28px; border-radius:6px; padding:0; flex-shrink:0;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+      
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menuToggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <div class="search-bar">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="globalSearch" placeholder="Search across current view...">
+          </div>
+        </div>
+        
+        <div class="header-right">
+          <div class="date-time">
+            <div class="date-time-clock" id="clock">00:00:00 PM</div>
+            <div class="date-time-day" id="calendarDate">Mon, Jul 6, 2026</div>
+          </div>
+          
+          <div class="icon-actions">
+            <button class="icon-btn" id="btnNotifications" title="Notifications">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              <span class="badge-dot" id="notiBadge"></span>
+            </button>
+            <button class="icon-btn" id="btnResetDb" title="Reset Database State">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18"/></svg>
+            </button>
+          </div>
+          
+          <button class="btn-primary-gradient" id="quickActionBtn">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+            Quick Add
+          </button>
+        </div>
+      </header>
+      
+      <!-- Main Content Tabs -->
+      <main class="content-view">
+        
+        <!-- MODULE 1: Admin Dashboard -->
+        <section class="tab-content active" id="tab-dashboard">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Overview Dashboard</h1>
+              <p class="section-desc">Hostel operations real-time metrics and alerts.</p>
+            </div>
+          </div>
+          
+          <!-- Key Metrics Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon primary">
+                <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="stat-total-students">0</span>
+                <span class="stat-label">Total Students</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon secondary">
+                <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="stat-occupancy-rate">0%</span>
+                <span class="stat-label">Occupancy Rate</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon danger">
+                <svg viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="stat-pending-complaints">0</span>
+                <span class="stat-label">Active Tickets</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon success">
+                <svg viewBox="0 0 24 24"><path d="M9 8h6m-5 0a3 3 0 110 6h5M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="stat-paid-fees-ratio">0%</span>
+                <span class="stat-label">Fee Collection</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon warning">
+                <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value" id="stat-active-visitors">0</span>
+                <span class="stat-label">Active Visitors</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Dashboard Visual Charts & Recent Activities -->
+          <div class="dashboard-grid">
+            <div class="glass-panel">
+              <h3 class="floor-title" style="border-color:var(--primary)">Financials & Occupancy Metrics</h3>
+              <div class="chart-container">
+                <canvas id="occupancyChart"></canvas>
+              </div>
+            </div>
+            
+            <div class="glass-panel">
+              <h3 class="floor-title" style="border-color:var(--secondary); margin-bottom:16px;">Recent Activities</h3>
+              <div class="activity-list" id="activityList">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 2: Student Management -->
+        <section class="tab-content" id="tab-students">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Student Management</h1>
+              <p class="section-desc">Add, filter, and modify hostel resident profiles.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-accent" id="btnAddStudent">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                Add Student
+              </button>
+            </div>
+          </div>
+          
+          <div class="glass-panel">
+            <div class="filters-bar">
+              <div class="filters-left">
+                <select class="filter-select" id="filterStudentHostel">
+                  <option value="all">All Hostels</option>
+                  <!-- Populated dynamically -->
+                </select>
+                <select class="filter-select" id="filterStudentStatus">
+                  <option value="all">All Statuses</option>
+                  <option value="Active">Active</option>
+                  <option value="Suspended">Suspended</option>
+                  <option value="Graduated">Graduated</option>
+                </select>
+                <select class="filter-select" id="filterStudentFees">
+                  <option value="all">All Payment Statuses</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="table-responsive">
+              <table class="data-table" id="studentsTable">
+                <thead>
+                  <tr>
+                    <th>Student Info</th>
+                    <th>College ID</th>
+                    <th>Contact</th>
+                    <th>Hostel & Room</th>
+                    <th>Fee Status</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 3: Hostel Management -->
+        <section class="tab-content" id="tab-hostels">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Hostel Management</h1>
+              <p class="section-desc">Manage wings, configurations, and head wardens.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-accent" id="btnAddHostel">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                Add Hostel Wing
+              </button>
+            </div>
+          </div>
+          
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table" id="hostelsTable">
+                <thead>
+                  <tr>
+                    <th>Hostel Name</th>
+                    <th>Type</th>
+                    <th>Floors</th>
+                    <th>Bed Capacity</th>
+                    <th>Warden</th>
+                    <th>Warden Contact</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 4: Room Management -->
+        <section class="tab-content" id="tab-rooms">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Room & Bed Layouts</h1>
+              <p class="section-desc">Grid explorer of room types, rates, and occupancy states.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-accent" id="btnAddRoom">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                Add Room
+              </button>
+            </div>
+          </div>
+          
+          <div class="hostel-tabs" id="roomHostelTabs">
+            <!-- Dynamic hostel tabs (e.g. Boys Hostel Alpha, Girls Hostel Beta) -->
+          </div>
+          
+          <div class="rooms-section" id="roomsDisplayArea">
+            <!-- Dynamic room grid split by floor -->
+          </div>
+        </section>
+        
+        <!-- MODULE 5: Bed Allocation -->
+        <section class="tab-content" id="tab-allocation">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Bed Allocation Portal</h1>
+              <p class="section-desc">Select students and allocate vacant slots in real time.</p>
+            </div>
+          </div>
+          
+          <div class="allocation-panel">
+            <div class="glass-panel">
+              <h3 class="floor-title" style="margin-bottom: 20px;">Assign Bed Slot</h3>
+              <form id="bedAllocationForm">
+                <div class="form-group">
+                  <label for="allocStudentSelect">Unallocated Student</label>
+                  <select class="form-control" id="allocStudentSelect" required>
+                    <option value="">Choose student...</option>
+                    <!-- Injected dynamically -->
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="allocHostelSelect">Hostel Wing</label>
+                  <select class="form-control" id="allocHostelSelect" required>
+                    <option value="">Choose hostel...</option>
+                    <!-- Injected dynamically -->
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="allocRoomSelect">Available Room</label>
+                  <select class="form-control" id="allocRoomSelect" required disabled>
+                    <option value="">First choose a hostel...</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="allocBedSelect">Bed Number</label>
+                  <select class="form-control" id="allocBedSelect" required disabled>
+                    <option value="">First choose a room...</option>
+                  </select>
+                </div>
+                
+                <button type="submit" class="btn btn-accent" style="width: 100%; justify-content: center; padding: 12px;">
+                  Allocate Bed Slot
+                </button>
+              </form>
+            </div>
+            
+            <div class="glass-panel">
+              <h3 class="floor-title" style="margin-bottom: 20px;">Occupancy List & De-allocation</h3>
+              <div class="table-responsive">
+                <table class="data-table" id="allocationsTable">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Hostel Wing</th>
+                      <th>Room & Bed</th>
+                      <th>Monthly Rent</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Injected dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 6: Fee Management -->
+        <section class="tab-content" id="tab-fees">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Fee Ledger & Invoices</h1>
+              <p class="section-desc">Generate monthly billing and collect payment transactions.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-accent" id="btnGenerateBills">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Auto-Generate Monthly Bills
+              </button>
+            </div>
+          </div>
+          
+          <div class="glass-panel">
+            <div class="filters-bar">
+              <div class="filters-left">
+                <select class="filter-select" id="filterFeeStatus">
+                  <option value="all">All Billings</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="table-responsive">
+              <table class="data-table" id="feesTable">
+                <thead>
+                  <tr>
+                    <th>Invoice ID</th>
+                    <th>Student Name</th>
+                    <th>Billing Term</th>
+                    <th>Amount</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 7: Complaint Management -->
+        <section class="tab-content" id="tab-complaints">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Complaints Tickets</h1>
+              <p class="section-desc">Ticket Kanban desk for student queries and room maintenance.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-accent" id="btnNewComplaint">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                File Ticket
+              </button>
+            </div>
+          </div>
+          
+          <div class="complaint-board">
+            <!-- COLUMN 1: Pending -->
+            <div class="complaint-column" id="col-pending">
+              <div class="complaint-column-header">
+                <span class="complaint-column-title">
+                  <span class="activity-marker danger"></span> Pending
+                </span>
+                <span class="complaint-column-count" id="count-pending">0</span>
+              </div>
+              <div class="complaint-list" id="list-pending">
+                <!-- Tickets go here -->
+              </div>
+            </div>
+            
+            <!-- COLUMN 2: In Progress -->
+            <div class="complaint-column" id="col-progress">
+              <div class="complaint-column-header">
+                <span class="complaint-column-title">
+                  <span class="activity-marker warning"></span> In Progress
+                </span>
+                <span class="complaint-column-count" id="count-progress">0</span>
+              </div>
+              <div class="complaint-list" id="list-progress">
+                <!-- Tickets go here -->
+              </div>
+            </div>
+            
+            <!-- COLUMN 3: Resolved -->
+            <div class="complaint-column" id="col-resolved">
+              <div class="complaint-column-header">
+                <span class="complaint-column-title">
+                  <span class="activity-marker success"></span> Resolved
+                </span>
+                <span class="complaint-column-count" id="count-resolved">0</span>
+              </div>
+              <div class="complaint-list" id="list-resolved">
+                <!-- Tickets go here -->
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 8: Visitor Management -->
+        <section class="tab-content" id="tab-visitors">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Visitor Registry Log</h1>
+              <p class="section-desc">Record check-in and check-out logs of guests and parents.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-accent" id="btnCheckInVisitor">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                Visitor Check-in
+              </button>
+            </div>
+          </div>
+          
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table" id="visitorsTable">
+                <thead>
+                  <tr>
+                    <th>Visitor Name</th>
+                    <th>Phone</th>
+                    <th>Relationship</th>
+                    <th>Host Resident</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Purpose</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 9: Staff Management -->
+        <section class="tab-content" id="tab-staff">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Staff Directory</h1>
+              <p class="section-desc">Manage wardens, security guards, mess staff, and operators.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-accent" id="btnAddStaff">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                Add Staff Profile
+              </button>
+            </div>
+          </div>
+          
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table" id="staffTable">
+                <thead>
+                  <tr>
+                    <th>Staff Info</th>
+                    <th>Role / Duty</th>
+                    <th>Contact</th>
+                    <th>Shift</th>
+                    <th>Monthly Salary</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 10: Attendance -->
+        <section class="tab-content" id="tab-attendance">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Attendance Register</h1>
+              <p class="section-desc">Mark daily hostel resident check-in lists.</p>
+            </div>
+            <div class="section-actions">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <label for="attendanceDatePicker" style="font-size:0.85rem; color:var(--text-muted); font-weight:600">Select Date:</label>
+                <input type="date" class="form-control" id="attendanceDatePicker" style="width:180px; padding:6px 12px">
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table" id="attendanceTable">
+                <thead>
+                  <tr>
+                    <th>Resident Name</th>
+                    <th>College ID</th>
+                    <th>Room</th>
+                    <th>Attendance Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+            
+            <div style="margin-top:20px; display:flex; justify-content:flex-end">
+              <button class="btn btn-accent" id="btnSaveAttendance" style="padding:12px 24px">
+                Save Attendance Registry
+              </button>
+            </div>
+          </div>
+        </section>
+        
+        <!-- MODULE 11: Notice Board -->
+        <section class="tab-content" id="tab-noticeboard">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Official Announcements</h1>
+              <p class="section-desc">Post notifications and policy updates for residents.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-accent" id="btnNewNotice">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                Post New Notice
+              </button>
+            </div>
+          </div>
+          
+          <div class="notice-grid" id="noticesDisplayArea">
+            <!-- Sticky notices injected dynamically -->
+          </div>
+        </section>
+        
+        <!-- MODULE 12: Reports -->
+        <section class="tab-content" id="tab-reports">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Reports & Analytical Export</h1>
+              <p class="section-desc">Generate export-ready files and formatted print layouts.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn" id="btnExportCSV" style="gap:8px">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Export CSV
+              </button>
+              <button class="btn btn-accent" id="btnPrintReport">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                Print Report
+              </button>
+            </div>
+          </div>
+          
+          <div class="reports-layout">
+            <div class="report-menu">
+              <button class="report-menu-btn active" data-report="occupancy">Occupancy Report</button>
+              <button class="report-menu-btn" data-report="fees">Financials Collection</button>
+              <button class="report-menu-btn" data-report="complaints">Complaints Log</button>
+              <button class="report-menu-btn" data-report="visitors">Visitors Log</button>
+            </div>
+            
+            <div class="glass-panel" id="reportContentArea">
+              <!-- Render report table dynamically -->
+            </div>
+          </div>
+        </section>
+        
+      </main>
+      
+    </div>
+    
+  </div>
+  
+  <!-- TOAST CONTAINER FOR DYNAMIC ACTIONS -->
+  <div class="toast-container" id="toastContainer"></div>
+  
+  <!-- MODAL: ADD/EDIT STUDENT -->
+  <div class="modal-overlay" id="modalStudent">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="studentModalTitle">Add New Student</h3>
+        <button class="modal-close" onclick="closeModal('modalStudent')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="studentForm">
+        <input type="hidden" id="studentEditId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="studentName">Full Name</label>
+            <input type="text" class="form-control" id="studentName" placeholder="e.g. Aditya Verma" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="studentEmail">Email Address</label>
+              <input type="email" class="form-control" id="studentEmail" placeholder="name@college.com" required>
+            </div>
+            <div class="form-group">
+              <label for="studentPhone">Phone Number</label>
+              <input type="text" class="form-control" id="studentPhone" placeholder="+91 XXXXX XXXXX" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="studentCollegeId">College ID</label>
+              <input type="text" class="form-control" id="studentCollegeId" placeholder="e.g. CS23B1002" required>
+            </div>
+            <div class="form-group">
+              <label for="studentGender">Gender</label>
+              <select class="form-control" id="studentGender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="studentParent">Parent Name</label>
+              <input type="text" class="form-control" id="studentParent" placeholder="e.g. Ramesh Verma" required>
+            </div>
+            <div class="form-group">
+              <label for="studentParentPhone">Parent Phone</label>
+              <input type="text" class="form-control" id="studentParentPhone" placeholder="+91 XXXXX XXXXX" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="studentStatus">Status</label>
+              <select class="form-control" id="studentStatus">
+                <option value="Active">Active</option>
+                <option value="Suspended">Suspended</option>
+                <option value="Graduated">Graduated</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="studentFeeStatus">Fee Status</label>
+              <select class="form-control" id="studentFeeStatus">
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('modalStudent')">Cancel</button>
+          <button type="submit" class="btn btn-accent">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD/EDIT HOSTEL -->
+  <div class="modal-overlay" id="modalHostel">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="hostelModalTitle">Add Hostel Wing</h3>
+        <button class="modal-close" onclick="closeModal('modalHostel')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="hostelForm">
+        <input type="hidden" id="hostelEditId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="hostelName">Wing Name</label>
+            <input type="text" class="form-control" id="hostelName" placeholder="e.g. Boys Hostel Alpha" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hostelType">Gender Allocation</label>
+              <select class="form-control" id="hostelType" required>
+                <option value="Boys">Boys Only</option>
+                <option value="Girls">Girls Only</option>
+                <option value="Co-ed">Co-ed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="hostelFloors">Total Floors</label>
+              <input type="number" class="form-control" id="hostelFloors" min="1" max="10" placeholder="e.g. 3" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hostelWarden">Chief Warden Name</label>
+              <input type="text" class="form-control" id="hostelWarden" placeholder="e.g. Mr. Rajesh Sharma" required>
+            </div>
+            <div class="form-group">
+              <label for="hostelContact">Warden Contact</label>
+              <input type="text" class="form-control" id="hostelContact" placeholder="+91 XXXXX XXXXX" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('modalHostel')">Cancel</button>
+          <button type="submit" class="btn btn-accent">Save Wing</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD ROOM -->
+  <div class="modal-overlay" id="modalRoom">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Room</h3>
+        <button class="modal-close" onclick="closeModal('modalRoom')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="roomForm">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="roomHostelSelect">Hostel Wing</label>
+              <select class="form-control" id="roomHostelSelect" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="roomNumber">Room Number</label>
+              <input type="text" class="form-control" id="roomNumber" placeholder="e.g. 104" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="roomFloor">Floor</label>
+              <input type="number" class="form-control" id="roomFloor" min="1" max="10" placeholder="e.g. 1" required>
+            </div>
+            <div class="form-group">
+              <label for="roomType">Room Sharing Type</label>
+              <select class="form-control" id="roomType" required>
+                <option value="Single">Single Sharing (1 Bed)</option>
+                <option value="Double">Double Sharing (2 Beds)</option>
+                <option value="Triple">Triple Sharing (3 Beds)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="roomRent">Monthly Rent Rate (₹)</label>
+              <input type="number" class="form-control" id="roomRent" min="500" placeholder="e.g. 4500" required>
+            </div>
+            <div class="form-group">
+              <label for="roomStatus">Initial Status</label>
+              <select class="form-control" id="roomStatus">
+                <option value="Available">Available</option>
+                <option value="Maintenance">Under Maintenance</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('modalRoom')">Cancel</button>
+          <button type="submit" class="btn btn-accent">Save Room</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD STAFF -->
+  <div class="modal-overlay" id="modalStaff">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="staffModalTitle">Add Staff Profile</h3>
+        <button class="modal-close" onclick="closeModal('modalStaff')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="staffForm">
+        <input type="hidden" id="staffEditId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="staffName">Full Name</label>
+            <input type="text" class="form-control" id="staffName" placeholder="e.g. Sohan Lal" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="staffRole">Role / Duty</label>
+              <select class="form-control" id="staffRole" required>
+                <option value="Warden">Warden</option>
+                <option value="Security Guard">Security Guard</option>
+                <option value="Housekeeper">Housekeeper</option>
+                <option value="Mess Manager">Mess Manager</option>
+                <option value="Electrician">Electrician</option>
+                <option value="Plumber">Plumber</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="staffPhone">Phone Number</label>
+              <input type="text" class="form-control" id="staffPhone" placeholder="+91 XXXXX XXXXX" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="staffShift">Shift</label>
+              <select class="form-control" id="staffShift" required>
+                <option value="Day">Day Shift</option>
+                <option value="Night">Night Shift</option>
+                <option value="Rotational">Rotational</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="staffSalary">Monthly Salary (₹)</label>
+              <input type="number" class="form-control" id="staffSalary" min="2000" placeholder="e.g. 15000" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="staffStatus">Status</label>
+            <select class="form-control" id="staffStatus">
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('modalStaff')">Cancel</button>
+          <button type="submit" class="btn btn-accent">Save Staff</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD COMPLAINT -->
+  <div class="modal-overlay" id="modalComplaint">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">File Maintenance Ticket</h3>
+        <button class="modal-close" onclick="closeModal('modalComplaint')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="complaintForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="compStudentSelect">Reporting Resident</label>
+            <select class="form-control" id="compStudentSelect" required>
+              <option value="">Select resident student...</option>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="compTitle">Issue Title</label>
+              <input type="text" class="form-control" id="compTitle" placeholder="e.g. Water dripping from washroom tap" required>
+            </div>
+            <div class="form-group">
+              <label for="compCategory">Category</label>
+              <select class="form-control" id="compCategory" required>
+                <option value="Plumbing">Plumbing</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Cleaning">Cleaning</option>
+                <option value="Internet">Internet</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="compDescription">Detailed Description</label>
+            <textarea class="form-control" id="compDescription" placeholder="Provide details, specific room coordinates, urgency context..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('modalComplaint')">Cancel</button>
+          <button type="submit" class="btn btn-accent">Submit Ticket</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VIEW COMPLAINT DETAILS / UPDATE STATUS -->
+  <div class="modal-overlay" id="modalComplaintView">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Ticket Registry Info</h3>
+        <button class="modal-close" onclick="closeModal('modalComplaintView')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="details-list">
+          <div class="detail-item">
+            <span class="detail-label">Ticket ID</span>
+            <span class="detail-value" id="viewCompId"></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Filed Date</span>
+            <span class="detail-value" id="viewCompDate"></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Student Name</span>
+            <span class="detail-value" id="viewCompStudent"></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Category</span>
+            <span class="detail-value"><span id="viewCompCategoryBadge" class="badge"></span></span>
+          </div>
+          <div class="detail-item full-width">
+            <span class="detail-label">Subject</span>
+            <span class="detail-value" id="viewCompTitle" style="font-weight: 600;"></span>
+          </div>
+          <div class="detail-item full-width">
+            <span class="detail-label">Issue Details</span>
+            <span class="detail-value" id="viewCompDesc" style="white-space: pre-wrap; line-height: 1.4;"></span>
+          </div>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid var(--border-glass); margin: 20px 0;">
+        
+        <form id="compStatusUpdateForm">
+          <input type="hidden" id="viewCompEditId">
+          <div class="form-group">
+            <label for="viewCompStatusSelect">Update Ticket Status</label>
+            <select class="form-control" id="viewCompStatusSelect" required>
+              <option value="Pending">Pending Review</option>
+              <option value="In Progress">In Progress / Assigned</option>
+              <option value="Resolved">Resolved / Closed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="viewCompResolution">Resolution Notes</label>
+            <textarea class="form-control" id="viewCompResolution" placeholder="Add resolution descriptions, technician log details, etc."></textarea>
+          </div>
+          <button type="submit" class="btn btn-accent" style="width: 100%; justify-content: center; padding: 12px">
+            Update Status Details
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VISITOR CHECK-IN -->
+  <div class="modal-overlay" id="modalVisitor">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Visitor Registry Entry</h3>
+        <button class="modal-close" onclick="closeModal('modalVisitor')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="visitorForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="visitorName">Visitor Full Name</label>
+            <input type="text" class="form-control" id="visitorName" placeholder="e.g. Manish Verma" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="visitorPhone">Contact Number</label>
+              <input type="text" class="form-control" id="visitorPhone" placeholder="+91 XXXXX XXXXX" required>
+            </div>
+            <div class="form-group">
+              <label for="visitorRelation">Relation with Resident</label>
+              <input type="text" class="form-control" id="visitorRelation" placeholder="e.g. Parent, Sibling, Friend" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="visitorStudentSelect">Hosting Student</label>
+            <select class="form-control" id="visitorStudentSelect" required>
+              <option value="">Select hosting student...</option>
+              <!-- Injected dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="visitorPurpose">Purpose of Visit</label>
+            <input type="text" class="form-control" id="visitorPurpose" placeholder="e.g. Delivery / Fees payment / Outing pick-up" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('modalVisitor')">Cancel</button>
+          <button type="submit" class="btn btn-accent">Log Check-In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: POST NOTICE -->
+  <div class="modal-overlay" id="modalNotice">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Write Notice Announcement</h3>
+        <button class="modal-close" onclick="closeModal('modalNotice')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="noticeForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="noticeTitle">Bulletin Title</label>
+            <input type="text" class="form-control" id="noticeTitle" placeholder="e.g. Water tank maintenance cleaning" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="noticeCategory">Category</label>
+              <select class="form-control" id="noticeCategory" required>
+                <option value="Urgent">Urgent Alert</option>
+                <option value="Academic">Academic Notice</option>
+                <option value="Event">Campus Event</option>
+                <option value="Maintenance">Utility Maintenance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="noticePostedBy">Author Profile</label>
+              <input type="text" class="form-control" id="noticePostedBy" placeholder="e.g. Chief Warden" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="noticeContent">Announcement Body</label>
+            <textarea class="form-control" id="noticeContent" placeholder="Enter notice details, contact protocols, and event timings..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('modalNotice')">Cancel</button>
+          <button type="submit" class="btn btn-accent">Publish Announcement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: INVOICE GENERATION VIEW -->
+  <div class="modal-overlay" id="modalInvoice">
+    <div class="modal-container" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Fee Invoice Detail</h3>
+        <button class="modal-close" onclick="closeModal('modalInvoice')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="invoicePrintArea">
+          <!-- Populated dynamically to render a beautiful layout for invoices -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('modalInvoice')">Close</button>
+        <button type="button" class="btn btn-accent" id="btnPrintInvoice">Print/Save Invoice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STUDENT DETAILED CARD VIEW -->
+  <div class="modal-overlay" id="modalStudentView">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Resident Profile Details</h3>
+        <button class="modal-close" onclick="closeModal('modalStudentView')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="details-list" id="studentDetailViewContainer">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('modalStudentView')">Close Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAD DATA AND APP SCRIPTS -->
+  <script src="js/data.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+@theme {
+  /* Override Tailwind slate colors globally to black/dark slate */
+  --color-slate-400: #1e293b;
+  --color-slate-450: #1e293b;
+  --color-slate-500: #0f172a;
+  --color-slate-600: #000000;
+  --color-slate-650: #000000;
+  --color-slate-700: #000000;
+  --color-slate-800: #000000;
+  --color-slate-850: #000000;
+  
+  /* Override Tailwind zinc/gray colors globally to black/dark slate */
+  --color-zinc-400: #1e293b;
+  --color-zinc-500: #0f172a;
+  --color-zinc-600: #000000;
+  --color-gray-400: #1e293b;
+  --color-gray-500: #0f172a;
+  --color-gray-600: #000000;
+
+  /* Custom variables matching color tokens exactly */
+  --color-bg-app: var(--bg-app);
+  --color-bg-card: var(--bg-card);
+  --color-bg-sidebar: var(--bg-sidebar);
+  
+  --color-txt-primary: var(--text-primary);
+  --color-txt-secondary: var(--text-secondary);
+  --color-txt-muted: var(--text-muted);
+  
+  --color-border-custom: var(--border-custom);
+  
+  --color-primary-btn: var(--color-primary-custom);
+  --color-primary-hover: var(--color-primary-hover-custom);
+  --color-success-custom: var(--success-custom);
+  --color-warning-custom: var(--warning-custom);
+  --color-danger-custom: var(--danger-custom);
+  --color-info-custom: var(--info-custom);
+}
+
+:root {
+  --bg-app: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --text-primary: #000000;
+  --text-secondary: #0F172A;
+  --text-muted: #1E293B;
+  --border-custom: #CBD5E1; /* High contrast, sharp gray border */
+  --color-primary-custom: #2563EB;
+  --color-primary-hover-custom: #1D4ED8;
+  --success-custom: #16A34A;
+  --warning-custom: #F59E0B;
+  --danger-custom: #DC2626;
+  --info-custom: #0284C7;
+}
+
+.dark {
+  /* Retain light mode colors when .dark class is added (theme locked to light) */
+  --bg-app: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --text-primary: #000000;
+  --text-secondary: #0F172A;
+  --text-muted: #1E293B;
+  --border-custom: #CBD5E1;
+  --color-primary-custom: #2563EB;
+  --color-primary-hover-custom: #1D4ED8;
+  --success-custom: #16A34A;
+  --warning-custom: #F59E0B;
+  --danger-custom: #DC2626;
+  --info-custom: #0284C7;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.premium-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-custom);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.08);
+  padding: 24px;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.premium-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

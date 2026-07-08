@@ -1,0 +1,240 @@
+// This is your Prisma schema file for the Hostel Management System
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  avatar       String?
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  notices      Notice[]
+  activityLogs ActivityLog[]
+
+  @@map("admins")
+}
+
+model Hostel {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // Boys, Girls, Mixed
+  address     String?
+  floors      Int      @default(1)
+  totalRooms  Int      @default(0)
+  capacity    Int      @default(0)
+  warden      String?
+  contact     String?
+  description String?
+  rules       String?
+  status      String   @default("Active") // Active, Inactive
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rooms       Room[]
+
+  @@map("hostels")
+}
+
+model Room {
+  id             String   @id @default(cuid())
+  hostelId       String
+  roomNumber     String
+  floor          Int      @default(1)
+  type           String   // Single, Double, Triple, Dormitory
+  capacity       Int      @default(1)
+  occupiedBeds   Int      @default(0)
+  ac             Boolean  @default(false)
+  attachedBath   Boolean  @default(false)
+  monthlyRent    Float    @default(0)
+  status         String   @default("Available") // Available, Full, Maintenance
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  hostel         Hostel          @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  allocations    RoomAllocation[]
+  students       Student[]
+
+  @@unique([hostelId, roomNumber])
+  @@map("rooms")
+}
+
+model Student {
+  id               String   @id @default(cuid())
+  name             String
+  photo            String?
+  email            String   @unique
+  phone            String
+  dateOfBirth      DateTime?
+  gender           String   @default("Male") // Male, Female, Other
+  college          String?
+  course           String?
+  year             String?
+  enrollmentNumber String?  @unique
+  address          String?
+  city             String?
+  state            String?
+  parentName       String?
+  parentPhone      String?
+  parentEmail      String?
+  emergencyContact String?
+  admissionDate    DateTime @default(now())
+  roomId           String?
+  hostelId         String?
+  bedNo            Int?
+  status           String   @default("Active") // Active, Inactive, Suspended, CheckedOut
+  documents        String?  // JSON array of document URLs
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  room             Room?           @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  allocations      RoomAllocation[]
+  fees             Fee[]
+  complaints       Complaint[]
+  visitors         Visitor[]
+
+  @@map("students")
+}
+
+model RoomAllocation {
+  id          String    @id @default(cuid())
+  studentId   String
+  roomId      String
+  bedNo       Int
+  checkIn     DateTime  @default(now())
+  checkOut    DateTime?
+  status      String    @default("Active") // Active, CheckedOut
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("room_allocations")
+}
+
+model Fee {
+  id            String    @id @default(cuid())
+  studentId     String
+  type          String    @default("Monthly") // Monthly, Security, Mess, Fine, Other
+  month         Int?      // 1-12
+  year          Int?
+  amount        Float
+  amountAccount1 Float    @default(3000)
+  amountAccount2 Float    @default(4500)
+  paidAccount1   Float    @default(0)
+  paidAccount2   Float    @default(0)
+  paidAmount    Float     @default(0)
+  discount      Float     @default(0)
+  fine          Float     @default(0)
+  dueDate       DateTime?
+  paidAt        DateTime?
+  paymentMode   String?   // Cash, UPI, Bank Transfer, Cheque
+  transactionId String?
+  receiptNumber String?
+  notes         String?
+  status        String    @default("Pending") // Pending, Paid, Partial, Overdue
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("fees")
+}
+
+model Complaint {
+  id          String    @id @default(cuid())
+  studentId   String
+  title       String
+  description String
+  category    String    @default("General") // Maintenance, Cleanliness, Food, Electrical, Plumbing, Security, Other
+  priority    String    @default("Medium") // Low, Medium, High, Urgent
+  status      String    @default("Pending") // Pending, InProgress, Resolved, Closed
+  assignedTo  String?
+  resolvedAt  DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("complaints")
+}
+
+model Visitor {
+  id          String    @id @default(cuid())
+  studentId   String
+  name        String
+  phone       String
+  relation    String    @default("Other") // Parent, Sibling, Friend, Relative, Other
+  purpose     String?
+  idProof     String?
+  checkIn     DateTime  @default(now())
+  checkOut    DateTime?
+  status      String    @default("CheckedIn") // CheckedIn, CheckedOut
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("visitors")
+}
+
+model Staff {
+  id           String    @id @default(cuid())
+  name         String
+  email        String?   @unique
+  phone        String
+  designation  String    // Warden, Security, Housekeeper, Electrician, Plumber, Cook, Other
+  department   String?
+  salary       Float     @default(0)
+  joiningDate  DateTime  @default(now())
+  address      String?
+  photo        String?
+  status       String    @default("Active") // Active, Inactive, OnLeave
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("staff")
+}
+
+model Notice {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  category    String   @default("General") // General, Urgent, Academic, Event, Maintenance, Holiday
+  pinned      Boolean  @default(false)
+  publishedAt DateTime @default(now())
+  expiresAt   DateTime?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  admin       Admin    @relation(fields: [createdBy], references: [id])
+
+  @@map("notices")
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  module    String   // Students, Rooms, Fees, etc.
+  action    String   // Created, Updated, Deleted, etc.
+  detail    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  admin     Admin    @relation(fields: [userId], references: [id])
+
+  @@map("activity_logs")
+}
