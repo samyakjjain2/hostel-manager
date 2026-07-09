@@ -1,8 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { protect } = require('../middleware/auth');
-const prisma = new PrismaClient();
+
+const parseSalary = (val) => {
+  if (val === undefined) return undefined;
+  if (val === null || val === '') return null;
+  const parsed = parseFloat(val);
+  return isNaN(parsed) ? undefined : parsed;
+};
 
 const log = async (action, detail, userId) => {
   try { await prisma.activityLog.create({ data: { module: 'Staff', action, detail, userId } }); } catch {}
@@ -25,9 +31,9 @@ router.get('/', protect, async (req, res, next) => {
     if (status) where.status = status;
     if (search) {
       where.OR = [
-        { name: { contains: search } },
-        { phone: { contains: search } },
-        { designation: { contains: search } }
+        { name: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+        { designation: { contains: search, mode: 'insensitive' } }
       ];
     }
 
@@ -51,7 +57,7 @@ router.post('/', protect, async (req, res, next) => {
         phone,
         designation: role !== undefined ? role : designation,
         department: shift !== undefined ? shift : department,
-        salary: salary !== undefined ? +salary : undefined,
+        salary: parseSalary(salary),
         address,
         status,
         adminId: req.admin.id
@@ -75,7 +81,7 @@ router.put('/:id', protect, async (req, res, next) => {
     if (phone !== undefined) updateData.phone = phone;
     if (status !== undefined) updateData.status = status;
     if (address !== undefined) updateData.address = address;
-    if (salary !== undefined) updateData.salary = +salary;
+    if (salary !== undefined) updateData.salary = parseSalary(salary);
     
     const finalDesignation = role !== undefined ? role : designation;
     if (finalDesignation !== undefined) updateData.designation = finalDesignation;

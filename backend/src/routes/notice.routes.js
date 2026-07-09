@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { protect } = require('../middleware/auth');
-const prisma = new PrismaClient();
 
 const log = async (action, detail, userId) => {
   try { await prisma.activityLog.create({ data: { module: 'Notices', action, detail, userId } }); } catch {}

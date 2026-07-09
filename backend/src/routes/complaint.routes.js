@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { protect } = require('../middleware/auth');
-const prisma = new PrismaClient();
 
 const log = async (action, detail, userId) => {
   try { await prisma.activityLog.create({ data: { module: 'Complaints', action, detail, userId } }); } catch {}
@@ -19,8 +18,8 @@ router.get('/', protect, async (req, res, next) => {
     if (category) where.category = category;
     if (search) {
       where.OR = [
-        { title: { contains: search } },
-        { student: { name: { contains: search }, adminId: req.admin.id } }
+        { title: { contains: search, mode: 'insensitive' } },
+        { student: { name: { contains: search, mode: 'insensitive' }, adminId: req.admin.id } }
       ];
     }
 

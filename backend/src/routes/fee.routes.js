@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { protect } = require('../middleware/auth');
-const prisma = new PrismaClient();
 
 const log = async (action, detail, userId) => {
   try { await prisma.activityLog.create({ data: { module: 'Fees', action, detail, userId } }); } catch {}
@@ -28,8 +27,11 @@ router.get('/', protect, async (req, res, next) => {
     }
     if (search) {
       where.student = {
-        name: { contains: search },
-        adminId: req.admin.id
+        adminId: req.admin.id,
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { enrollmentNumber: { contains: search, mode: 'insensitive' } }
+        ]
       };
     }
 

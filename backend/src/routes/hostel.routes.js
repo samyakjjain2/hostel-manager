@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { protect } = require('../middleware/auth');
-
-const prisma = new PrismaClient();
 
 const logActivity = async (module, action, detail, userId) => {
   try { await prisma.activityLog.create({ data: { module, action, detail, userId } }); } catch {}
@@ -13,7 +11,7 @@ router.get('/', protect, async (req, res, next) => {
   try {
     const { search, type, status, page = 1, limit = 20 } = req.query;
     const where = { adminId: req.admin.id };
-    if (search) where.name = { contains: search };
+    if (search) where.name = { contains: search, mode: 'insensitive' };
     if (type) where.type = type;
     if (status) where.status = status;
     const [hostels, total] = await Promise.all([
@@ -53,12 +51,16 @@ router.put('/:id', protect, async (req, res, next) => {
 
 router.delete('/:id', protect, async (req, res, next) => {
   try {
-    const hostel = await prisma.hostel.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    const hostel = await prisma.hostel.findFirst({ where: { id: req.params.id, adminId: req.admin.id }, include: { _count: { select: { rooms: true } } } });
     if (!hostel) return res.status(404).json({ success: false, message: 'Hostel not found' });
+
+    if (hostel._count.rooms > 0) {
+      return res.status(400).json({ success: false, message: 'Cannot delete hostel branch with registered rooms. Please delete all rooms in this hostel first.' });
+    }
 
     await prisma.hostel.delete({ where: { id: req.params.id } });
     await logActivity('Hostels', 'Deleted', `Deleted hostel: ${hostel.name}`, req.admin.id);
-    res.json({ success: true, message: 'Hostel deleted' });
+    res.json({ success: true, message: 'Hostel deleted successfully' });
   } catch (err) { next(err); }
 });
 

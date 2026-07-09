@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { protect } = require('../middleware/auth');
-const prisma = new PrismaClient();
 
 const log = async (action, detail, userId) => { try { await prisma.activityLog.create({ data: { module: 'Rooms', action, detail, userId } }); } catch {} };
 
@@ -14,7 +13,7 @@ router.get('/', protect, async (req, res, next) => {
     if (floor) where.floor = +floor;
     if (type) where.type = type;
     if (status) where.status = status;
-    if (search) where.roomNumber = { contains: search };
+    if (search) where.roomNumber = { contains: search, mode: 'insensitive' };
     const [rooms, total] = await Promise.all([
       prisma.room.findMany({ where, skip: (page-1)*+limit, take: +limit, orderBy: { roomNumber: 'asc' }, include: { hostel: { select: { name: true } } } }),
       prisma.room.count({ where })
@@ -55,9 +54,13 @@ router.delete('/:id', protect, async (req, res, next) => {
     const room = await prisma.room.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
     if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
 
+    if (room.occupiedBeds > 0) {
+      return res.status(400).json({ success: false, message: 'Cannot delete room with active occupants. Please check-out or transfer the students first.' });
+    }
+
     await prisma.room.delete({ where: { id: req.params.id } });
     await log('Deleted', `Deleted room ${room.roomNumber}`, req.admin.id);
-    res.json({ success: true, message: 'Room deleted' });
+    res.json({ success: true, message: 'Room deleted successfully' });
   } catch (err) { next(err); }
 });
 

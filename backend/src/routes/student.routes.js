@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { protect } = require('../middleware/auth');
-const prisma = new PrismaClient();
 
 const log = async (action, detail, userId) => {
   try { await prisma.activityLog.create({ data: { module: 'Students', action, detail, userId } }); } catch {}
@@ -16,10 +15,10 @@ router.get('/', protect, async (req, res, next) => {
     
     if (search) {
       where.OR = [
-        { name: { contains: search } },
-        { email: { contains: search } },
-        { phone: { contains: search } },
-        { enrollmentNumber: { contains: search } }
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+        { enrollmentNumber: { contains: search, mode: 'insensitive' } }
       ];
     }
     if (hostelId) where.hostelId = hostelId;

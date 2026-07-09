@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { protect } = require('../middleware/auth');
-const prisma = new PrismaClient();
 
 // GET /api/search?q=query
 router.get('/', protect, async (req, res, next) => {
@@ -24,10 +23,10 @@ router.get('/', protect, async (req, res, next) => {
         where: {
           adminId: req.admin.id,
           OR: [
-            { name: { contains: searchQuery } },
-            { enrollmentNumber: { contains: searchQuery } },
-            { email: { contains: searchQuery } },
-            { phone: { contains: searchQuery } }
+            { name: { contains: searchQuery, mode: 'insensitive' } },
+            { enrollmentNumber: { contains: searchQuery, mode: 'insensitive' } },
+            { email: { contains: searchQuery, mode: 'insensitive' } },
+            { phone: { contains: searchQuery, mode: 'insensitive' } }
           ]
         },
         include: {
@@ -42,7 +41,7 @@ router.get('/', protect, async (req, res, next) => {
       prisma.room.findMany({
         where: {
           adminId: req.admin.id,
-          roomNumber: { contains: searchQuery }
+          roomNumber: { contains: searchQuery, mode: 'insensitive' }
         },
         include: {
           hostel: true,
@@ -56,8 +55,8 @@ router.get('/', protect, async (req, res, next) => {
         where: {
           adminId: req.admin.id,
           OR: [
-            { name: { contains: searchQuery } },
-            { designation: { contains: searchQuery } }
+            { name: { contains: searchQuery, mode: 'insensitive' } },
+            { designation: { contains: searchQuery, mode: 'insensitive' } }
           ]
         },
         take: 10
@@ -68,8 +67,8 @@ router.get('/', protect, async (req, res, next) => {
         where: {
           adminId: req.admin.id,
           OR: [
-            { title: { contains: searchQuery } },
-            { description: { contains: searchQuery } }
+            { title: { contains: searchQuery, mode: 'insensitive' } },
+            { description: { contains: searchQuery, mode: 'insensitive' } }
           ]
         },
         include: {
