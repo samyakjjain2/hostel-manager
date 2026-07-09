@@ -9,7 +9,9 @@
     "dev": "nodemon server.js",
     "db:push": "npx prisma db push",
     "db:seed": "node prisma/seed.js",
-    "db:studio": "npx prisma studio"
+    "db:studio": "npx prisma studio",
+    "prisma:generate": "node node_modules/prisma/build/index.js generate",
+    "prisma:deploy": "node node_modules/prisma/build/index.js db push"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
