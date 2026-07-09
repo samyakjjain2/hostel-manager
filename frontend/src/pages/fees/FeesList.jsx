@@ -296,9 +296,6 @@ export const FeesList = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button variant="gradient" className="gap-1.5 cursor-pointer text-xs" onClick={() => setGenModal(true)}>
-            <Settings size={14} /> Auto-Generate Bills
-          </Button>
           <Button variant="outline" className="gap-1.5 cursor-pointer text-xs" onClick={openAdd}>
             <Plus size={14} /> {isDual ? 'Add Split Fee' : 'Create Invoice'}
           </Button>

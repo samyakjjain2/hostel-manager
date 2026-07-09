@@ -54,17 +54,7 @@ export const Sidebar = ({ isOpen, toggleSidebar }) => {
     {
       title: 'FINANCE',
       items: [
-        { 
-          name: 'Fee Management', 
-          path: '/fees', 
-          icon: CreditCard,
-          hasSubmenu: true,
-          submenuKey: 'finance',
-          submenuItems: [
-            { name: 'Invoices Ledger', path: '/fees' },
-            { name: 'Generate Bills', path: '/fees?action=generate' }
-          ]
-        },
+        { name: 'Fee Management', path: '/fees', icon: CreditCard },
         { name: 'Payment History', path: '/fees', icon: History }
       ]
     },
