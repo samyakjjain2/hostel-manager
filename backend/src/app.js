@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
+const fs = require('fs');
 
 const authRoutes = require('./routes/auth.routes');
 const hostelRoutes = require('./routes/hostel.routes');
@@ -33,7 +34,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Serve frontend static assets from frontend/dist
-const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+// Use process.cwd() since start command runs from repo root
+const frontendDistPath = path.join(process.cwd(), 'frontend', 'dist');
+console.log(`📂 Frontend dist path: ${frontendDistPath}`);
+console.log(`📂 Frontend dist exists: ${fs.existsSync(frontendDistPath)}`);
+if (fs.existsSync(frontendDistPath)) {
+  console.log(`📂 Frontend dist contents: ${fs.readdirSync(frontendDistPath).join(', ')}`);
+}
 app.use(express.static(frontendDistPath));
 
 // Health check
