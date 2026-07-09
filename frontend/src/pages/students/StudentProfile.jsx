@@ -36,6 +36,45 @@ export const StudentProfile = () => {
     onConfirm: null
   });
 
+  const [editModal, setEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    enrollmentNumber: '',
+    parentName: '',
+    parentPhone: '',
+    address: ''
+  });
+
+  const openEditModal = () => {
+    if (!student) return;
+    setEditFormData({
+      name: student.name || '',
+      email: student.email || '',
+      phone: student.phone || '',
+      enrollmentNumber: student.enrollmentNumber || '',
+      parentName: student.parentName || '',
+      parentPhone: student.parentPhone || '',
+      address: student.address || ''
+    });
+    setEditModal(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.put(`${API_URL}/students/${id}`, editFormData);
+      if (res.data.success) {
+        toast.success('Student profile updated successfully');
+        setEditModal(false);
+        fetchStudentProfile();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update student profile');
+    }
+  };
+
   const triggerConfirm = (title, message, action) => {
     setConfirmModal({
       isOpen: true,
@@ -140,6 +179,13 @@ export const StudentProfile = () => {
           </div>
         </div>
         <div className="flex gap-2.5">
+          <Button 
+            variant="outline" 
+            className="text-blue-650 border-blue-200 hover:bg-blue-50/50 text-xs font-bold shrink-0"
+            onClick={openEditModal}
+          >
+            Edit Profile
+          </Button>
           {student.status === 'Active' && (
             <Button 
               variant="outline" 
@@ -350,6 +396,59 @@ export const StudentProfile = () => {
         <p className="text-sm text-slate-600 dark:text-zinc-300 font-medium leading-relaxed">
           {confirmModal.message}
         </p>
+      </Modal>
+
+      {/* Edit Student Profile Details Modal */}
+      <Modal
+        isOpen={editModal}
+        onClose={() => setEditModal(false)}
+        title="Edit Student Profile Details"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setEditModal(false)}>Cancel</Button>
+            <Button variant="gradient" type="submit" form="edit-student-form">Save Changes</Button>
+          </>
+        }
+      >
+        <form id="edit-student-form" onSubmit={handleEditSubmit} className="space-y-4 text-xs font-semibold">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5 text-left">
+              <label className="font-bold text-slate-700">Full Name *</label>
+              <input type="text" required value={editFormData.name} onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2 px-3 text-slate-808 outline-none font-semibold" />
+            </div>
+            <div className="space-y-1.5 text-left">
+              <label className="font-bold text-slate-700">Email Address *</label>
+              <input type="email" required value={editFormData.email} onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2 px-3 text-slate-808 outline-none font-semibold" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5 text-left">
+              <label className="font-bold text-slate-700">Mobile Number *</label>
+              <input type="tel" required value={editFormData.phone} onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2 px-3 text-slate-808 outline-none font-semibold" />
+            </div>
+            <div className="space-y-1.5 text-left">
+              <label className="font-bold text-slate-700">Enrollment / Roll ID *</label>
+              <input type="text" required value={editFormData.enrollmentNumber} onChange={(e) => setEditFormData({ ...editFormData, enrollmentNumber: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2 px-3 text-slate-808 outline-none font-semibold font-mono" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5 text-left">
+              <label className="font-bold text-slate-700">Father's / Guardian's Name</label>
+              <input type="text" value={editFormData.parentName} onChange={(e) => setEditFormData({ ...editFormData, parentName: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2 px-3 text-slate-808 outline-none font-semibold" />
+            </div>
+            <div className="space-y-1.5 text-left">
+              <label className="font-bold text-slate-700">Guardian Phone Number</label>
+              <input type="tel" value={editFormData.parentPhone} onChange={(e) => setEditFormData({ ...editFormData, parentPhone: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2 px-3 text-slate-808 outline-none font-semibold" />
+            </div>
+          </div>
+
+          <div className="space-y-1.5 text-left">
+            <label className="font-bold text-slate-700">Residential Address</label>
+            <textarea rows="2" value={editFormData.address} onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2 px-3 text-slate-808 outline-none font-semibold resize-none" />
+          </div>
+        </form>
       </Modal>
     </div>
   );
