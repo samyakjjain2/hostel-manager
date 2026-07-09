@@ -446,8 +446,11 @@ export const FeesList = () => {
               <select value={payData.paymentMode} onChange={(e) => setPayData({ ...payData, paymentMode: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-800 outline-none font-semibold">
                 <option value="UPI">UPI</option>
                 <option value="Cash">Cash</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="Credit Card">Credit Card</option>
                 <option value="Bank Transfer">Bank Transfer</option>
                 <option value="Cheque">Cheque</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
@@ -505,6 +508,7 @@ export const FeesList = () => {
               <label className="font-bold text-slate-700">Fee Category *</label>
               <select value={addData.type} onChange={(e) => setAddData({ ...addData, type: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-semibold">
                 <option value="Monthly">Monthly Rent</option>
+                <option value="Caution Money">Caution Money</option>
                 <option value="Security">Security Deposit</option>
                 <option value="Mess">Mess Fee</option>
                 <option value="Other">Other Miscellaneous</option>
@@ -652,7 +656,11 @@ export const FeesList = () => {
               <tbody>
                 <tr className="font-bold">
                   <td className="border border-black p-2 text-center">1</td>
-                  <td className="border border-black p-2 text-left">{getHindiMonthName(printFee.month)} {printFee.year}</td>
+                  <td className="border border-black p-2 text-left">
+                    {printFee.type === 'Monthly' 
+                      ? `${getHindiMonthName(printFee.month)} ${printFee.year}` 
+                      : (printFee.type === 'Caution Money' ? 'Caution Money / कॉशन मनी' : printFee.type)}
+                  </td>
                   <td className="border border-black p-2 text-center">1</td>
                   <td className="border border-black p-2 text-right">₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</td>
                   <td className="border border-black p-2 text-right">₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</td>
@@ -662,8 +670,10 @@ export const FeesList = () => {
 
             {/* Totals & Signature layout */}
             <div className="grid grid-cols-2 gap-4 items-end pt-2">
-              <div className="text-[10px] font-bold text-slate-800 pb-2">
-                ID-{printFee.transactionId || '2811798588117'}---{customInvoiceDate}
+              <div className="text-[10px] font-bold text-slate-800 pb-2 space-y-1">
+                <div>Txn ID: <span className="font-mono">{printFee.transactionId || 'N/A'}</span></div>
+                <div>Payment Mode: <span className="font-mono">{printFee.paymentMode || 'N/A'}</span></div>
+                <div>Date: <span>{customInvoiceDate}</span></div>
               </div>
               <div className="space-y-4 text-right">
                 <div className="inline-block space-y-1 font-bold text-[11px] text-right" style={{ minWidth: '180px' }}>
