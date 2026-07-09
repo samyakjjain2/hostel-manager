@@ -1,0 +1,10 @@
+{
+  "name": "hostel-management",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm install --prefix backend && npm install --include=dev --prefix frontend",
+    "build": "npm run build --prefix frontend && cp -r frontend/dist backend/public && cd backend && npm run prisma:generate && npm run prisma:deploy",
+    "start": "node backend/server.js"
+  }
+}

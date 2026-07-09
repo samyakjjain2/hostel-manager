@@ -33,15 +33,17 @@ app.use(express.urlencoded({ extended: true }));
 // Static files (uploaded photos)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Serve frontend static assets from frontend/dist
-// Use process.cwd() since start command runs from repo root
-const frontendDistPath = path.join(process.cwd(), 'frontend', 'dist');
-console.log(`📂 Frontend dist path: ${frontendDistPath}`);
-console.log(`📂 Frontend dist exists: ${fs.existsSync(frontendDistPath)}`);
+// Serve frontend static assets
+// In production, build copies dist → backend/public. In dev, try frontend/dist.
+const publicPath = path.join(__dirname, '..', 'public');
+const devDistPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
+const frontendDistPath = fs.existsSync(publicPath) ? publicPath : devDistPath;
+console.log(`📂 Serving frontend from: ${frontendDistPath}`);
+console.log(`📂 Path exists: ${fs.existsSync(frontendDistPath)}`);
 if (fs.existsSync(frontendDistPath)) {
-  console.log(`📂 Frontend dist contents: ${fs.readdirSync(frontendDistPath).join(', ')}`);
+  console.log(`📂 Contents: ${fs.readdirSync(frontendDistPath).join(', ')}`);
+  app.use(express.static(frontendDistPath));
 }
-app.use(express.static(frontendDistPath));
 
 // Health check
 app.get('/api/health', (req, res) => {
