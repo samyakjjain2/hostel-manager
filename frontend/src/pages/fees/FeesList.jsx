@@ -535,16 +535,17 @@ export const FeesList = () => {
                 left: 0 !important;
                 top: 0 !important;
                 width: 100% !important;
-                border: none !important;
+                border: 1px solid #000000 !important;
                 box-shadow: none !important;
-                padding: 0 !important;
+                padding: 24px !important;
                 margin: 0 !important;
                 color: #000000 !important;
                 background: #ffffff !important;
               }
-              /* Reset modal layout constraints for printing */
-              .fixed, .relative {
-                position: relative !important;
+              /* Strip flex layout & constraints from all parent wrappers during print */
+              .fixed, .relative, div {
+                position: static !important;
+                display: block !important;
                 overflow: visible !important;
                 max-height: none !important;
                 height: auto !important;
@@ -553,10 +554,6 @@ export const FeesList = () => {
                 border: none !important;
                 box-shadow: none !important;
                 background: transparent !important;
-              }
-              div {
-                max-height: none !important;
-                overflow: visible !important;
               }
               .no-print {
                 display: none !important;
