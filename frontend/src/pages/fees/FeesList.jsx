@@ -124,6 +124,10 @@ export const FeesList = () => {
 
   const handleAddFee = async (e) => {
     e.preventDefault();
+    if ((parseFloat(addData.amountAccount1) || 0) + (parseFloat(addData.amountAccount2) || 0) <= 0) {
+      toast.error('Total fee amount must be greater than 0');
+      return;
+    }
     try {
       const res = await axios.post(`${API_URL}/fees`, addData);
       if (res.data.success) {
@@ -517,12 +521,12 @@ export const FeesList = () => {
 
             <div className="space-y-1.5">
               <label className="font-bold text-slate-700">Account 1 Portion (₹) *</label>
-              <input type="number" required min="1" value={addData.amountAccount1} onChange={(e) => setAddData({ ...addData, amountAccount1: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
+              <input type="number" required min="0" value={addData.amountAccount1} onChange={(e) => setAddData({ ...addData, amountAccount1: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
             </div>
 
             <div className="space-y-1.5">
               <label className="font-bold text-slate-700">Account 2 Portion (₹) *</label>
-              <input type="number" required min="1" value={addData.amountAccount2} onChange={(e) => setAddData({ ...addData, amountAccount2: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
+              <input type="number" required min="0" value={addData.amountAccount2} onChange={(e) => setAddData({ ...addData, amountAccount2: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
             </div>
           </div>
 
