@@ -286,7 +286,7 @@ export const FeesList = () => {
             <Settings size={14} /> Auto-Generate Bills
           </Button>
           <Button variant="outline" className="gap-1.5 cursor-pointer text-xs" onClick={openAdd}>
-            <Plus size={14} /> {isDual ? 'Add Split Fee' : 'Create Custom Invoice'}
+            <Plus size={14} /> {isDual ? 'Add Split Fee' : 'Create Invoice'}
           </Button>
         </div>
       </div>
@@ -672,10 +672,10 @@ export const FeesList = () => {
       </Modal>
 
       {/* Add Individual Fee Modal */}
-      <Modal isOpen={addModal} onClose={() => setAddModal(false)} title="Record Custom Split Fee" footer={
+      <Modal isOpen={addModal} onClose={() => setAddModal(false)} title={isDual ? 'Record Custom Split Fee' : 'Create Custom Invoice'} footer={
         <>
           <Button variant="secondary" onClick={() => setAddModal(false)}>Cancel</Button>
-          <Button variant="gradient" type="submit" form="add-fee-form">Create Split Fee</Button>
+          <Button variant="gradient" type="submit" form="add-fee-form">{isDual ? 'Create Split Fee' : 'Create Invoice'}</Button>
         </>
       }>
         <form id="add-fee-form" onSubmit={handleAddFee} className="space-y-4 text-xs font-semibold">
@@ -686,7 +686,7 @@ export const FeesList = () => {
             </select>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 ${isDual ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
             <div className="space-y-1.5">
               <label className="font-bold text-slate-700">Fee Category *</label>
               <select value={addData.type} onChange={(e) => setAddData({ ...addData, type: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-semibold">
@@ -698,22 +698,41 @@ export const FeesList = () => {
               </select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-700">Account 1 Portion (₹) *</label>
-              <input type="number" required min="0" value={addData.amountAccount1} onChange={(e) => setAddData({ ...addData, amountAccount1: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-700">Account 2 Portion (₹) *</label>
-              <input type="number" required min="0" value={addData.amountAccount2} onChange={(e) => setAddData({ ...addData, amountAccount2: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
-            </div>
+            {isDual ? (
+              <>
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-700">{acc1Name} Portion (₹) *</label>
+                  <input type="number" required min="0" value={addData.amountAccount1} onChange={(e) => setAddData({ ...addData, amountAccount1: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-700">{acc2Name} Portion (₹) *</label>
+                  <input type="number" required min="0" value={addData.amountAccount2} onChange={(e) => setAddData({ ...addData, amountAccount2: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700">Invoice Amount (₹) *</label>
+                <input type="number" required min="1" value={addData.amountAccount1} onChange={(e) => setAddData({ ...addData, amountAccount1: parseFloat(e.target.value) || 0, amountAccount2: 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-700">Due Date *</label>
-              <input type="date" required value={addData.dueDate} onChange={(e) => setAddData({ ...addData, dueDate: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none" />
+              <label className="font-bold text-slate-700">Billing Month *</label>
+              <select value={addData.month} onChange={(e) => setAddData({ ...addData, month: parseInt(e.target.value) || 1 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-800 outline-none font-semibold">
+                {Array.from({ length: 12 }, (_, i) => <option key={i+1} value={i+1}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>)}
+              </select>
             </div>
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700">Billing Year *</label>
+              <input type="number" required value={addData.year} onChange={(e) => setAddData({ ...addData, year: parseInt(e.target.value) || new Date().getFullYear() })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-800 outline-none font-semibold" />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="font-bold text-slate-700">Due Date *</label>
+            <input type="date" required value={addData.dueDate} onChange={(e) => setAddData({ ...addData, dueDate: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none" />
           </div>
         </form>
       </Modal>
