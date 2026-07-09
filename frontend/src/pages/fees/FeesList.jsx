@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { CreditCard, Search, Plus, Settings, CheckCircle2, Printer } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export const FeesList = () => {
@@ -31,6 +31,7 @@ export const FeesList = () => {
   const [statsData, setStatsData] = useState({ breakdown: { UPI: 0, Cash: 0, "Debit Card": 0, "Credit Card": 0, "Bank Transfer": 0, Cheque: 0, Other: 0 }, totalCollected: 0 });
 
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // Search & Filters
   const [search, setSearch] = useState('');
@@ -46,6 +47,12 @@ export const FeesList = () => {
     setSelectedMonth(searchParams.get('month') || '');
     setSelectedYear(searchParams.get('year') || '');
     setPage(1);
+
+    if (searchParams.get('action') === 'generate') {
+      setGenModal(true);
+    } else {
+      setGenModal(false);
+    }
   }, [searchParams]);
 
   // Modals
@@ -531,12 +538,32 @@ export const FeesList = () => {
       )}
 
       {/* Auto-generate Modal */}
-      <Modal isOpen={genModal} onClose={() => setGenModal(false)} title="Auto-Generate Monthly Bills" footer={
-        <>
-          <Button variant="secondary" onClick={() => setGenModal(false)}>Cancel</Button>
-          <Button variant="gradient" type="submit" form="generate-form">Trigger Billing Run</Button>
-        </>
-      }>
+      <Modal 
+        isOpen={genModal} 
+        onClose={() => {
+          setGenModal(false);
+          if (searchParams.get('action') === 'generate') {
+            navigate('/fees');
+          }
+        }} 
+        title="Auto-Generate Monthly Bills" 
+        footer={
+          <>
+            <Button 
+              variant="secondary" 
+              onClick={() => {
+                setGenModal(false);
+                if (searchParams.get('action') === 'generate') {
+                  navigate('/fees');
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="gradient" type="submit" form="generate-form">Trigger Billing Run</Button>
+          </>
+        }
+      >
         <form id="generate-form" onSubmit={handleGenInvoices} className="space-y-4 text-xs font-semibold">
           <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
             {isDual

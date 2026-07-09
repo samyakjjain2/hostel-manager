@@ -62,7 +62,7 @@ export const Sidebar = ({ isOpen, toggleSidebar }) => {
           submenuKey: 'finance',
           submenuItems: [
             { name: 'Invoices Ledger', path: '/fees' },
-            { name: 'Generate Bills', path: '/fees' }
+            { name: 'Generate Bills', path: '/fees?action=generate' }
           ]
         },
         { name: 'Payment History', path: '/fees', icon: History }
@@ -158,21 +158,26 @@ export const Sidebar = ({ isOpen, toggleSidebar }) => {
                         </button>
                         {isDropdownOpen && (
                           <div className="pl-9 pr-2 py-1 space-y-1 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                            {item.submenuItems.map((sub, subIdx) => (
-                              <NavLink
-                                key={subIdx}
-                                to={sub.path}
-                                className={({ isActive }) =>
-                                  `block py-1.5 px-2 rounded-md text-[11px] font-semibold transition ${
-                                    isActive
-                                      ? 'text-blue-650 dark:text-blue-400 bg-slate-100 dark:bg-slate-800 font-bold'
-                                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-105 dark:hover:bg-slate-800'
-                                  }`
-                                }
-                              >
-                                {sub.name}
-                              </NavLink>
-                            ))}
+                            {item.submenuItems.map((sub, subIdx) => {
+                              const isCurrentActive = sub.path.includes('?') 
+                                ? window.location.pathname + window.location.search === sub.path 
+                                : window.location.pathname === sub.path && !window.location.search.includes('action=generate');
+                              return (
+                                <NavLink
+                                  key={subIdx}
+                                  to={sub.path}
+                                  className={
+                                    `block py-1.5 px-2 rounded-md text-[11px] font-semibold transition ${
+                                      isCurrentActive
+                                        ? 'text-blue-650 dark:text-blue-400 bg-slate-100 dark:bg-slate-800 font-bold'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-105 dark:hover:bg-slate-800'
+                                    }`
+                                  }
+                                >
+                                  {sub.name}
+                                </NavLink>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
