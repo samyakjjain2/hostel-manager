@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_URL } from '../../context/AuthContext';
+import { API_URL, useAuth } from '../../context/AuthContext';
 import { RevenueChart } from '../../components/charts/DashboardCharts';
 import { 
   Users, 
@@ -24,6 +24,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 
 export const Dashboard = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [revenueData, setRevenueData] = useState([]);
   const [logs, setLogs] = useState([]);
@@ -140,9 +141,13 @@ export const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-1.5">
-            Good Morning, Warden 👋
+            {(() => {
+              const hr = new Date().getHours();
+              const greet = hr < 12 ? 'Good Morning' : hr < 17 ? 'Good Afternoon' : 'Good Evening';
+              return `${greet}, ${user?.name || 'Warden'}`;
+            })()} 👋
           </h1>
-          <p className="text-slate-500 dark:text-zinc-400 text-xs mt-0.5">Welcome to Pratibha Chayan Chatrawas portal.</p>
+          <p className="text-slate-500 dark:text-zinc-400 text-xs mt-0.5">Welcome to {user?.hostelName || 'Hostel'} portal.</p>
         </div>
 
         <div className="flex items-center gap-2 px-3.5 py-2 border border-blue-100 dark:border-blue-900/50 bg-blue-50/40 dark:bg-blue-950/20 text-blue-650 dark:text-blue-400 font-semibold rounded-lg text-xs shadow-sm">
