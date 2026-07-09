@@ -155,9 +155,16 @@ export const FeesList = () => {
 
   const handleAddFee = async (e) => {
     e.preventDefault();
-    if ((parseFloat(addData.amountAccount1) || 0) + (parseFloat(addData.amountAccount2) || 0) <= 0) {
-      toast.error('Total fee amount must be greater than 0');
-      return;
+    if (isDual) {
+      if ((parseFloat(addData.amountAccount1) || 0) + (parseFloat(addData.amountAccount2) || 0) <= 0) {
+        toast.error('Total fee amount must be greater than 0');
+        return;
+      }
+    } else {
+      if ((parseFloat(addData.amount) || 0) <= 0) {
+        toast.error('Bill amount must be greater than 0');
+        return;
+      }
     }
     try {
       const res = await axios.post(`${API_URL}/fees`, addData);
@@ -213,9 +220,9 @@ export const FeesList = () => {
 
   const openPay = (fee) => {
     setSelectedFee(fee);
-    const balance = activeAccount === 1 
-      ? fee.amountAccount1 - fee.paidAccount1 
-      : fee.amountAccount2 - fee.paidAccount2;
+    const balance = isDual
+      ? (activeAccount === 1 ? fee.amountAccount1 - fee.paidAccount1 : fee.amountAccount2 - fee.paidAccount2)
+      : fee.amount - fee.paidAmount;
       
     setPayData({
       paidAmount: balance,
@@ -234,6 +241,7 @@ export const FeesList = () => {
     setAddData({
       studentId: students[0]?.id || '',
       type: 'Monthly',
+      amount: user?.defaultMonthlyAmount ?? 7500,
       amountAccount1: acc1Default,
       amountAccount2: acc2Default,
       month: new Date().getMonth() + 1,
@@ -270,11 +278,9 @@ export const FeesList = () => {
           <Button variant="gradient" className="gap-1.5 cursor-pointer text-xs" onClick={() => setGenModal(true)}>
             <Settings size={14} /> Auto-Generate Bills
           </Button>
-          {isDual && (
-            <Button variant="outline" className="gap-1.5 cursor-pointer text-xs" onClick={openAdd}>
-              <Plus size={14} /> Add Split Fee
-            </Button>
-          )}
+          <Button variant="outline" className="gap-1.5 cursor-pointer text-xs" onClick={openAdd}>
+            <Plus size={14} /> {isDual ? 'Add Split Fee' : 'Create Bill'}
+          </Button>
         </div>
       </div>
 
@@ -449,8 +455,12 @@ export const FeesList = () => {
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {fees.map((fee) => {
-                  const billAmt = activeAccount === 1 ? fee.amountAccount1 : fee.amountAccount2;
-                  const paidAmt = activeAccount === 1 ? fee.paidAccount1 : fee.paidAccount2;
+                  const billAmt = isDual 
+                    ? (activeAccount === 1 ? fee.amountAccount1 : fee.amountAccount2)
+                    : fee.amount;
+                  const paidAmt = isDual
+                    ? (activeAccount === 1 ? fee.paidAccount1 : fee.paidAccount2)
+                    : fee.paidAmount;
                   const balance = Math.max(0, billAmt - paidAmt);
                   
                   // Calculate independent account billing status
@@ -578,13 +588,17 @@ export const FeesList = () => {
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold uppercase text-[10px]">Bill Rate:</span>
                 <span className="text-slate-800 font-bold">
-                  ₹{activeAccount === 1 ? selectedFee.amountAccount1 : selectedFee.amountAccount2}
+                  ₹{isDual 
+                    ? (activeAccount === 1 ? selectedFee.amountAccount1 : selectedFee.amountAccount2)
+                    : selectedFee.amount}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold uppercase text-[10px]">Amount Already Paid:</span>
                 <span className="text-emerald-600 font-bold">
-                  ₹{activeAccount === 1 ? selectedFee.paidAccount1 : selectedFee.paidAccount2}
+                  ₹{isDual
+                    ? (activeAccount === 1 ? selectedFee.paidAccount1 : selectedFee.paidAccount2)
+                    : selectedFee.paidAmount}
                 </span>
               </div>
             </div>
@@ -612,9 +626,11 @@ export const FeesList = () => {
                 min="1" 
                 max={
                   selectedFee 
-                    ? (activeAccount === 1 
-                        ? selectedFee.amountAccount1 - selectedFee.paidAccount1 
-                        : selectedFee.amountAccount2 - selectedFee.paidAccount2) 
+                    ? (isDual 
+                        ? (activeAccount === 1 
+                            ? selectedFee.amountAccount1 - selectedFee.paidAccount1 
+                            : selectedFee.amountAccount2 - selectedFee.paidAccount2) 
+                        : selectedFee.amount - selectedFee.paidAmount)
                     : 10000
                 }
                 value={payData.paidAmount} 
@@ -639,10 +655,10 @@ export const FeesList = () => {
       </Modal>
 
       {/* Add Individual Fee Modal */}
-      <Modal isOpen={addModal} onClose={() => setAddModal(false)} title="Record Custom Split Fee" footer={
+      <Modal isOpen={addModal} onClose={() => setAddModal(false)} title={isDual ? "Record Custom Split Fee" : "Create Custom Bill"} footer={
         <>
           <Button variant="secondary" onClick={() => setAddModal(false)}>Cancel</Button>
-          <Button variant="gradient" type="submit" form="add-fee-form">Create Split Fee</Button>
+          <Button variant="gradient" type="submit" form="add-fee-form">Create Bill</Button>
         </>
       }>
         <form id="add-fee-form" onSubmit={handleAddFee} className="space-y-4 text-xs font-semibold">
@@ -665,15 +681,24 @@ export const FeesList = () => {
               </select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-700">Account 1 Portion (₹) *</label>
-              <input type="number" required min="0" value={addData.amountAccount1} onChange={(e) => setAddData({ ...addData, amountAccount1: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
-            </div>
+            {isDual ? (
+              <>
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-700">Account 1 Portion (₹) *</label>
+                  <input type="number" required min="0" value={addData.amountAccount1} onChange={(e) => setAddData({ ...addData, amountAccount1: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-700">Account 2 Portion (₹) *</label>
-              <input type="number" required min="0" value={addData.amountAccount2} onChange={(e) => setAddData({ ...addData, amountAccount2: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-700">Account 2 Portion (₹) *</label>
+                  <input type="number" required min="0" value={addData.amountAccount2} onChange={(e) => setAddData({ ...addData, amountAccount2: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700">Bill Amount (₹) *</label>
+                <input type="number" required min="1" value={addData.amount} onChange={(e) => setAddData({ ...addData, amount: parseFloat(e.target.value) || 0 })} className="w-full rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-slate-805 outline-none font-bold" />
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -760,7 +785,7 @@ export const FeesList = () => {
               <div className="text-right space-y-4">
                 <div className="text-xl font-black tracking-wider text-black">RECEIPT</div>
                 <div className="text-[11px] font-bold text-slate-800 space-y-1">
-                  <div>invoice No : <span className="font-mono">{(activeAccount === 1 ? acc1Prefix : acc2Prefix)}-{printFee.id.slice(-4).toUpperCase()}</span></div>
+                  <div>invoice No : <span className="font-mono">{isDual ? (activeAccount === 1 ? acc1Prefix : acc2Prefix) : 'REC'}-{printFee.id.slice(-4).toUpperCase()}</span></div>
                   <div>
                     invoice Date : <span>
                       {isEditingDate ? (
@@ -812,8 +837,8 @@ export const FeesList = () => {
                       : (printFee.type === 'Caution Money' ? 'Caution Money / कॉशन मनी' : printFee.type)}
                   </td>
                   <td className="border border-black p-2 text-center">1</td>
-                  <td className="border border-black p-2 text-right">₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</td>
-                  <td className="border border-black p-2 text-right">₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</td>
+                  <td className="border border-black p-2 text-right">₹{(isDual ? (activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2) : printFee.amount)?.toLocaleString('en-IN')}.00</td>
+                  <td className="border border-black p-2 text-right">₹{(isDual ? (activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2) : printFee.amount)?.toLocaleString('en-IN')}.00</td>
                 </tr>
               </tbody>
             </table>
@@ -829,15 +854,15 @@ export const FeesList = () => {
                 <div className="inline-block space-y-1 font-bold text-[11px] text-right" style={{ minWidth: '180px' }}>
                   <div className="flex justify-between border-b border-slate-200 pb-1">
                     <span>Total Amount:</span>
-                    <span>₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</span>
+                    <span>₹{(isDual ? (activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2) : printFee.amount)?.toLocaleString('en-IN')}.00</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-200 py-1">
                     <span>Subtotal:</span>
-                    <span>₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</span>
+                    <span>₹{(isDual ? (activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2) : printFee.amount)?.toLocaleString('en-IN')}.00</span>
                   </div>
                   <div className="flex justify-between pt-1 text-slate-900" style={{ fontSize: '12px' }}>
                     <span>Amount Paid:</span>
-                    <span>₹{(activeAccount === 1 ? printFee.paidAccount1 : printFee.paidAccount2)?.toLocaleString('en-IN')}.00</span>
+                    <span>₹{(isDual ? (activeAccount === 1 ? printFee.paidAccount1 : printFee.paidAccount2) : printFee.paidAmount)?.toLocaleString('en-IN')}.00</span>
                   </div>
                 </div>
 
