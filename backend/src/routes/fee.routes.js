@@ -11,11 +11,13 @@ const log = async (action, detail, userId) => {
 // GET /api/fees
 router.get('/', protect, async (req, res, next) => {
   try {
-    const { status, studentId, search, page = 1, limit = 20 } = req.query;
+    const { status, studentId, search, month, year, page = 1, limit = 20 } = req.query;
     const where = { adminId: req.admin.id };
     
     if (status) where.status = status;
     if (studentId) where.studentId = studentId;
+    if (month) where.month = +month;
+    if (year) where.year = +year;
     if (search) {
       where.student = {
         name: { contains: search },

@@ -34,6 +34,8 @@ export const FeesList = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
 
   // Modals
   const [genModal, setGenModal] = useState(false);
@@ -76,7 +78,7 @@ export const FeesList = () => {
 
   useEffect(() => {
     fetchFees();
-  }, [page, selectedStatus, activeAccount]);
+  }, [page, selectedStatus, selectedMonth, selectedYear, activeAccount]);
 
   const fetchDropdowns = async () => {
     try {
@@ -104,7 +106,9 @@ export const FeesList = () => {
         params: {
           search,
           page,
-          limit: 10
+          limit: 10,
+          month: selectedMonth || undefined,
+          year: selectedYear || undefined
         }
       });
       if (res.data.success) {
@@ -361,13 +365,34 @@ export const FeesList = () => {
         <select
           value={selectedStatus}
           onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
-          className="w-full md:w-44 rounded-lg border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-xs text-slate-700 outline-none font-semibold"
+          className="w-full md:w-36 rounded-lg border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-xs text-slate-700 outline-none font-semibold"
         >
           <option value="">All Statuses</option>
           <option value="Pending">Pending</option>
           <option value="Paid">Paid</option>
           <option value="Partial">Partial</option>
         </select>
+
+        <select
+          value={selectedMonth}
+          onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }}
+          className="w-full md:w-36 rounded-lg border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-xs text-slate-700 outline-none font-semibold"
+        >
+          <option value="">All Months</option>
+          {Array.from({ length: 12 }, (_, i) => (
+            <option key={i + 1} value={i + 1}>
+              {new Date(0, i).toLocaleString('default', { month: 'long' })}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="number"
+          placeholder="Year (e.g. 2026)"
+          value={selectedYear}
+          onChange={(e) => { setSelectedYear(e.target.value); setPage(1); }}
+          className="w-full md:w-28 rounded-lg border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-xs text-slate-700 outline-none font-semibold"
+        />
 
         <Button variant="outline" className="w-full md:w-auto text-xs shrink-0 cursor-pointer font-bold" onClick={fetchFees}>
           Apply Filters
