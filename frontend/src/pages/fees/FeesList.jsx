@@ -193,6 +193,8 @@ export const FeesList = () => {
       const payload = {
         paidAccount1: activeAccount === 1 ? parseFloat(payData.paidAmount) || 0 : 0,
         paidAccount2: activeAccount === 2 ? parseFloat(payData.paidAmount) || 0 : 0,
+        // Also send paidAmount for single-account mode backend
+        paidAmount: parseFloat(payData.paidAmount) || 0,
         discount: 0,
         fine: 0,
         paymentMode: payData.paymentMode,
