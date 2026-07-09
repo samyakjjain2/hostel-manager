@@ -229,7 +229,17 @@ export const Dashboard = () => {
           
           <div className="relative flex items-center justify-center my-4">
             <div className="relative h-44 w-44 rounded-full border-[14px] border-slate-100 dark:border-zinc-800 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-[14px] border-transparent border-t-blue-600 border-r-blue-600 border-b-blue-600 rotate-[45deg]" />
+              {/* Dynamic arc based on real occupancy % */}
+              <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50" cy="50" r="43"
+                  fill="none"
+                  stroke="#2563eb"
+                  strokeWidth="14"
+                  strokeDasharray={`${(stats?.occupancyRate || 0) * 2.7} 270`}
+                  strokeLinecap="round"
+                />
+              </svg>
               <div className="text-center">
                 <span className="text-2xl font-black text-slate-805 dark:text-white">
                   {stats?.occupancyRate !== undefined ? `${stats.occupancyRate}%` : '0%'}
@@ -243,14 +253,14 @@ export const Dashboard = () => {
             <div className="flex items-center gap-2">
               <div className="h-3.5 w-3.5 rounded-full bg-blue-600" />
               <div>
-                <span className="text-slate-700 dark:text-zinc-300 font-semibold block text-[11px]">Occupied Rooms</span>
+                <span className="text-slate-700 dark:text-zinc-300 font-semibold block text-[11px]">Occupied Beds</span>
                 <span className="text-slate-400 font-medium">{stats?.occupiedBeds || 0} Beds</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3.5 w-3.5 rounded-full bg-slate-200 dark:bg-zinc-800" />
               <div>
-                <span className="text-slate-700 dark:text-zinc-300 font-semibold block text-[11px]">Vacant Rooms</span>
+                <span className="text-slate-700 dark:text-zinc-300 font-semibold block text-[11px]">Vacant Beds</span>
                 <span className="text-slate-400 font-medium">{stats?.vacantBeds || 0} Beds</span>
               </div>
             </div>
