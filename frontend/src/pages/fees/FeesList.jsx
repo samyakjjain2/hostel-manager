@@ -51,11 +51,19 @@ export const FeesList = () => {
   const [customInvoiceDate, setCustomInvoiceDate] = useState('');
   const [isEditingDate, setIsEditingDate] = useState(false);
 
+  const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const [y, m, d] = parts;
+    return `${d}/${m}/${y}`;
+  };
+
   useEffect(() => {
     if (printFee) {
       const defaultDate = printFee.paidAt 
-        ? new Date(printFee.paidAt).toLocaleDateString('en-GB') 
-        : new Date().toLocaleDateString('en-GB');
+        ? new Date(printFee.paidAt).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
       setCustomInvoiceDate(defaultDate);
       setIsEditingDate(false);
     }
@@ -684,14 +692,14 @@ export const FeesList = () => {
                     invoice Date : <span>
                       {isEditingDate ? (
                         <input 
-                          type="text" 
+                          type="date" 
                           value={customInvoiceDate} 
                           onChange={(e) => setCustomInvoiceDate(e.target.value)} 
-                          className="border border-slate-300 px-1 py-0.5 rounded text-[10px] w-20 no-print text-black inline-block"
+                          className="border border-slate-300 px-1.5 py-0.5 rounded text-[11px] no-print text-black inline-block cursor-pointer outline-none bg-white"
                           autoFocus
                         />
                       ) : (
-                        customInvoiceDate
+                        formatDisplayDate(customInvoiceDate)
                       )}
                     </span>
                     <button 
@@ -742,7 +750,7 @@ export const FeesList = () => {
               <div className="text-[10px] font-bold text-slate-800 pb-2 space-y-1">
                 <div>Txn ID: <span className="font-mono">{printFee.transactionId || 'N/A'}</span></div>
                 <div>Payment Mode: <span className="font-mono">{printFee.paymentMode || 'N/A'}</span></div>
-                <div>Date: <span>{customInvoiceDate}</span></div>
+                <div>Date: <span>{formatDisplayDate(customInvoiceDate)}</span></div>
               </div>
               <div className="space-y-4 text-right">
                 <div className="inline-block space-y-1 font-bold text-[11px] text-right" style={{ minWidth: '180px' }}>
