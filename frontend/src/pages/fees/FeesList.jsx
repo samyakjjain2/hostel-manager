@@ -542,6 +542,22 @@ export const FeesList = () => {
                 color: #000000 !important;
                 background: #ffffff !important;
               }
+              /* Reset modal layout constraints for printing */
+              .fixed, .relative {
+                position: relative !important;
+                overflow: visible !important;
+                max-height: none !important;
+                height: auto !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: transparent !important;
+              }
+              div {
+                max-height: none !important;
+                overflow: visible !important;
+              }
               .no-print {
                 display: none !important;
               }
