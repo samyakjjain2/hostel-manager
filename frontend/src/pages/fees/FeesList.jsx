@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { CreditCard, Search, Plus, Settings, CheckCircle2, Printer } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export const FeesList = () => {
@@ -31,7 +32,8 @@ export const FeesList = () => {
 
   // Search & Filters
   const [search, setSearch] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const location = useLocation();
+  const [selectedStatus, setSelectedStatus] = useState(location.state?.filterStatus || '');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedMonth, setSelectedMonth] = useState('');

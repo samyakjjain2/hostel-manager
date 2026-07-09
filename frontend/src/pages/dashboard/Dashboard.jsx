@@ -77,7 +77,8 @@ export const Dashboard = () => {
       isUp: true, 
       icon: Users, 
       iconBg: 'bg-blue-50 dark:bg-blue-950/20', 
-      iconColor: 'text-blue-600 dark:text-blue-400' 
+      iconColor: 'text-blue-600 dark:text-blue-400',
+      path: '/students'
     },
     { 
       title: 'Occupied Beds', 
@@ -86,7 +87,8 @@ export const Dashboard = () => {
       isUp: true, 
       icon: DoorClosed, 
       iconBg: 'bg-emerald-50 dark:bg-emerald-950/20', 
-      iconColor: 'text-emerald-600 dark:text-emerald-400' 
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      path: '/rooms'
     },
     { 
       title: 'Vacant Beds', 
@@ -95,7 +97,8 @@ export const Dashboard = () => {
       isUp: false, 
       icon: Bed, 
       iconBg: 'bg-slate-50 dark:bg-slate-800/40', 
-      iconColor: 'text-slate-500 dark:text-slate-400' 
+      iconColor: 'text-slate-500 dark:text-slate-400',
+      path: '/rooms'
     },
     { 
       title: 'Pending Fees', 
@@ -104,7 +107,9 @@ export const Dashboard = () => {
       isUp: true, 
       icon: FileText, 
       iconBg: 'bg-orange-50 dark:bg-orange-950/20', 
-      iconColor: 'text-orange-600 dark:text-orange-400' 
+      iconColor: 'text-orange-600 dark:text-orange-400',
+      path: '/fees',
+      state: { filterStatus: 'Pending' }
     },
     { 
       title: 'Complaints Log', 
@@ -113,7 +118,8 @@ export const Dashboard = () => {
       isUp: false, 
       icon: AlertTriangle, 
       iconBg: 'bg-rose-50 dark:bg-rose-950/20', 
-      iconColor: 'text-rose-600 dark:text-rose-400' 
+      iconColor: 'text-rose-600 dark:text-rose-400',
+      path: '/complaints'
     },
     { 
       title: 'Today\'s Visitors', 
@@ -122,7 +128,8 @@ export const Dashboard = () => {
       isUp: true, 
       icon: UserCheck, 
       iconBg: 'bg-purple-50 dark:bg-purple-950/20', 
-      iconColor: 'text-purple-600 dark:text-purple-400' 
+      iconColor: 'text-purple-600 dark:text-purple-400',
+      path: '/visitors'
     }
   ];
 
@@ -178,7 +185,11 @@ export const Dashboard = () => {
       {/* Stats row with exactly 16px radius (rounded-2xl) and 24px padding (p-6) */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {statCards.map((card, i) => (
-          <div key={i} className="premium-card p-6 !rounded-2xl flex flex-col justify-between h-36 hover:shadow-md transition cursor-pointer">
+          <div 
+            key={i} 
+            onClick={() => navigate(card.path, { state: card.state })}
+            className="premium-card p-6 !rounded-2xl flex flex-col justify-between h-36 hover:shadow-md transition cursor-pointer select-none active:scale-[0.98]"
+          >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
                 {card.title}
