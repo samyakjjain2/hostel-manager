@@ -46,6 +46,48 @@ router.get('/', protect, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /api/fees/stats
+router.get('/stats', protect, async (req, res, next) => {
+  try {
+    const stats = await prisma.fee.groupBy({
+      by: ['paymentMode'],
+      _sum: {
+        paidAmount: true,
+        paidAccount1: true,
+        paidAccount2: true
+      },
+      where: {
+        adminId: req.admin.id,
+        paidAmount: { gt: 0 }
+      }
+    });
+
+    const breakdown = {
+      UPI: 0,
+      Cash: 0,
+      "Debit Card": 0,
+      "Credit Card": 0,
+      "Bank Transfer": 0,
+      Cheque: 0,
+      Other: 0
+    };
+
+    let totalCollected = 0;
+    stats.forEach(item => {
+      const mode = item.paymentMode || 'Other';
+      const amt = item._sum.paidAmount || 0;
+      if (breakdown[mode] !== undefined) {
+        breakdown[mode] = amt;
+      } else {
+        breakdown["Other"] = (breakdown["Other"] || 0) + amt;
+      }
+      totalCollected += amt;
+    });
+
+    res.json({ success: true, breakdown, totalCollected });
+  } catch (err) { next(err); }
+});
+
 // GET /api/fees/:id
 router.get('/:id', protect, async (req, res, next) => {
   try {

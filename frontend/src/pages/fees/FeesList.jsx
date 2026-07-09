@@ -27,6 +27,7 @@ export const FeesList = () => {
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [activeAccount, setActiveAccount] = useState(1);
+  const [statsData, setStatsData] = useState({ breakdown: { UPI: 0, Cash: 0, "Debit Card": 0, "Credit Card": 0, "Bank Transfer": 0, Cheque: 0, Other: 0 }, totalCollected: 0 });
 
   // Search & Filters
   const [search, setSearch] = useState('');
@@ -62,6 +63,7 @@ export const FeesList = () => {
 
   useEffect(() => {
     fetchDropdowns();
+    fetchStats();
   }, []);
 
   useEffect(() => {
@@ -72,6 +74,18 @@ export const FeesList = () => {
     try {
       const res = await axios.get(`${API_URL}/students`, { params: { limit: 100 } });
       if (res.data.success) setStudents(res.data.students);
+    } catch {}
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/fees/stats`);
+      if (res.data.success) {
+        setStatsData({
+          breakdown: res.data.breakdown,
+          totalCollected: res.data.totalCollected
+        });
+      }
     } catch {}
   };
 
@@ -116,6 +130,7 @@ export const FeesList = () => {
         toast.success(res.data.message);
         setGenModal(false);
         fetchFees();
+        fetchStats();
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Generation failed');
@@ -134,6 +149,7 @@ export const FeesList = () => {
         toast.success('Split fee record created successfully');
         setAddModal(false);
         fetchFees();
+        fetchStats();
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Creation failed');
@@ -158,6 +174,7 @@ export const FeesList = () => {
         toast.success(`Account ${activeAccount} payment recorded successfully`);
         setPayModal(false);
         fetchFees();
+        fetchStats();
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Payment update failed');
@@ -231,8 +248,56 @@ export const FeesList = () => {
         </div>
       </div>
 
+      {/* Payment Summary Cards breakdown */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Total Card */}
+        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-blue-500">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Total Collected</p>
+            <h3 className="text-lg font-black text-slate-800 dark:text-white mt-1">₹{statsData.totalCollected.toLocaleString('en-IN')}</h3>
+          </div>
+          <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">₹</div>
+        </div>
+
+        {/* UPI Card */}
+        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-emerald-500">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">UPI / QR Code</p>
+            <h3 className="text-lg font-black text-emerald-600 dark:text-emerald-450 mt-1">₹{statsData.breakdown.UPI.toLocaleString('en-IN')}</h3>
+          </div>
+          <div className="h-10 w-10 rounded-lg bg-emerald-50 dark:bg-emerald-905/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">UPI</div>
+        </div>
+
+        {/* Cash Card */}
+        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-amber-500">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Cash Payments</p>
+            <h3 className="text-lg font-black text-amber-600 dark:text-amber-450 mt-1">₹{statsData.breakdown.Cash.toLocaleString('en-IN')}</h3>
+          </div>
+          <div className="h-10 w-10 rounded-lg bg-amber-50 dark:bg-amber-905/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs">CASH</div>
+        </div>
+
+        {/* Cards (Debit/Credit) */}
+        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-indigo-500">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Card Payments</p>
+            <h3 className="text-lg font-black text-indigo-650 dark:text-indigo-400 mt-1">₹{(statsData.breakdown["Debit Card"] + statsData.breakdown["Credit Card"]).toLocaleString('en-IN')}</h3>
+          </div>
+          <div className="h-10 w-10 rounded-lg bg-indigo-50 dark:bg-indigo-905/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-[10px]">CARD</div>
+        </div>
+
+        {/* Bank / Others */}
+        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-slate-400">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Bank / Cheque / Other</p>
+            <h3 className="text-lg font-black text-slate-700 dark:text-zinc-300 mt-1">₹{(statsData.breakdown["Bank Transfer"] + statsData.breakdown.Cheque + statsData.breakdown.Other).toLocaleString('en-IN')}</h3>
+          </div>
+          <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 flex items-center justify-center font-bold text-xs">BANK</div>
+        </div>
+      </div>
+
       {/* Account Switch Tabs Navigation */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex border-b border-slate-200 pt-2">
         <button
           onClick={() => { setActiveAccount(1); setPage(1); }}
           className={`px-6 py-3 text-xs font-bold border-b-2 cursor-pointer transition-colors ${
