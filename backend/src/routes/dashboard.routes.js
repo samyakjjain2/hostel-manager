@@ -8,22 +8,23 @@ const prisma = new PrismaClient();
 // GET /api/dashboard/stats
 router.get('/stats', protect, async (req, res, next) => {
   try {
+    const adminId = req.admin.id;
     const [
       totalStudents, activeStudents, totalRooms, totalStaff,
       pendingFees, pendingComplaints, todayVisitors, recentStudents,
       hostels, rooms, monthlyRevenue
     ] = await Promise.all([
-      prisma.student.count(),
-      prisma.student.count({ where: { status: 'Active' } }),
-      prisma.room.count(),
-      prisma.staff.count({ where: { status: 'Active' } }),
-      prisma.fee.aggregate({ _sum: { amount: true, paidAmount: true }, where: { status: { in: ['Pending', 'Overdue'] } } }),
-      prisma.complaint.count({ where: { status: { in: ['Pending', 'InProgress'] } } }),
-      prisma.visitor.count({ where: { status: 'CheckedIn', checkIn: { gte: new Date(new Date().setHours(0,0,0,0)) } } }),
-      prisma.student.findMany({ take: 5, orderBy: { createdAt: 'desc' }, select: { id: true, name: true, photo: true, course: true, admissionDate: true, status: true } }),
-      prisma.hostel.findMany({ include: { _count: { select: { rooms: true } } } }),
-      prisma.room.findMany({ select: { capacity: true, occupiedBeds: true, status: true } }),
-      prisma.fee.aggregate({ _sum: { paidAmount: true }, where: { status: 'Paid', paidAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } } })
+      prisma.student.count({ where: { adminId } }),
+      prisma.student.count({ where: { status: 'Active', adminId } }),
+      prisma.room.count({ where: { adminId } }),
+      prisma.staff.count({ where: { status: 'Active', adminId } }),
+      prisma.fee.aggregate({ _sum: { amount: true, paidAmount: true }, where: { status: { in: ['Pending', 'Overdue'] }, adminId } }),
+      prisma.complaint.count({ where: { status: { in: ['Pending', 'InProgress'] }, adminId } }),
+      prisma.visitor.count({ where: { status: 'CheckedIn', adminId, checkIn: { gte: new Date(new Date().setHours(0,0,0,0)) } } }),
+      prisma.student.findMany({ where: { adminId }, take: 5, orderBy: { createdAt: 'desc' }, select: { id: true, name: true, photo: true, course: true, admissionDate: true, status: true } }),
+      prisma.hostel.findMany({ where: { adminId }, include: { _count: { select: { rooms: true } } } }),
+      prisma.room.findMany({ where: { adminId }, select: { capacity: true, occupiedBeds: true, status: true } }),
+      prisma.fee.aggregate({ _sum: { paidAmount: true }, where: { status: 'Paid', adminId, paidAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } } })
     ]);
 
     const totalBeds = rooms.reduce((s, r) => s + r.capacity, 0);
@@ -56,6 +57,7 @@ router.get('/stats', protect, async (req, res, next) => {
 router.get('/activity', protect, async (req, res, next) => {
   try {
     const logs = await prisma.activityLog.findMany({
+      where: { userId: req.admin.id },
       take: 20, orderBy: { createdAt: 'desc' },
       include: { admin: { select: { name: true } } }
     });
@@ -67,6 +69,7 @@ router.get('/activity', protect, async (req, res, next) => {
 router.get('/occupancy-chart', protect, async (req, res, next) => {
   try {
     const hostels = await prisma.hostel.findMany({
+      where: { adminId: req.admin.id },
       include: { rooms: { select: { capacity: true, occupiedBeds: true } } }
     });
     const data = hostels.map(h => ({
@@ -90,7 +93,7 @@ router.get('/fee-trend', protect, async (req, res, next) => {
     const data = await Promise.all(months.map(async ({ month, year, label }) => {
       const agg = await prisma.fee.aggregate({
         _sum: { paidAmount: true },
-        where: { month, year, status: 'Paid' }
+        where: { month, year, status: 'Paid', adminId: req.admin.id }
       });
       return { label, amount: agg._sum.paidAmount || 0 };
     }));

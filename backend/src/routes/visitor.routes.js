@@ -12,7 +12,7 @@ const log = async (action, detail, userId) => {
 router.get('/', protect, async (req, res, next) => {
   try {
     const { search, status, studentId } = req.query;
-    const where = {};
+    const where = { adminId: req.admin.id };
 
     if (status) where.status = status;
     if (studentId) where.studentId = studentId;
@@ -20,7 +20,7 @@ router.get('/', protect, async (req, res, next) => {
       where.OR = [
         { name: { contains: search } },
         { phone: { contains: search } },
-        { student: { name: { contains: search } } }
+        { student: { name: { contains: search }, adminId: req.admin.id } }
       ];
     }
 
@@ -39,11 +39,15 @@ router.get('/', protect, async (req, res, next) => {
 // POST /api/visitors OR /api/visitors/checkin
 const createVisitor = async (req, res, next) => {
   try {
+    const student = await prisma.student.findFirst({ where: { id: req.body.studentId, adminId: req.admin.id } });
+    if (!student) return res.status(400).json({ success: false, message: 'Invalid Student ID' });
+
     const visitor = await prisma.visitor.create({
       data: {
         ...req.body,
         checkIn: new Date(),
-        status: 'CheckedIn'
+        status: 'CheckedIn',
+        adminId: req.admin.id
       }
     });
     await log('CheckIn', `Visitor ${visitor.name} checked in to meet student ID ${visitor.studentId}`, req.admin.id);
@@ -57,6 +61,9 @@ router.post('/checkin', protect, createVisitor);
 // PUT /api/visitors/:id/checkout
 router.put('/:id/checkout', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.visitor.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Visitor record not found' });
+
     const visitor = await prisma.visitor.update({
       where: { id: req.params.id },
       data: {

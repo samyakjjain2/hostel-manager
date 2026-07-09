@@ -12,6 +12,7 @@ const log = async (action, detail, userId) => {
 router.get('/', protect, async (req, res, next) => {
   try {
     const allocations = await prisma.roomAllocation.findMany({
+      where: { adminId: req.admin.id },
       orderBy: { checkIn: 'desc' },
       include: {
         student: { select: { name: true, email: true, enrollmentNumber: true } },
@@ -25,6 +26,7 @@ router.get('/', protect, async (req, res, next) => {
 router.get('/history', protect, async (req, res, next) => {
   try {
     const allocations = await prisma.roomAllocation.findMany({
+      where: { adminId: req.admin.id },
       orderBy: { checkIn: 'desc' },
       include: {
         student: { select: { name: true, email: true, enrollmentNumber: true } },
@@ -39,7 +41,6 @@ router.get('/history', protect, async (req, res, next) => {
 router.post('/', protect, async (req, res, next) => {
   try {
     const { studentId, roomId } = req.body;
-    // Map bedNo or bedNumber
     const bedNoInput = req.body.bedNo !== undefined ? req.body.bedNo : req.body.bedNumber;
     const bedNo = parseInt(bedNoInput) || 1;
 
@@ -48,8 +49,8 @@ router.post('/', protect, async (req, res, next) => {
     }
 
     const [student, room] = await Promise.all([
-      prisma.student.findUnique({ where: { id: studentId } }),
-      prisma.room.findUnique({ where: { id: roomId }, include: { hostel: true } })
+      prisma.student.findFirst({ where: { id: studentId, adminId: req.admin.id } }),
+      prisma.room.findFirst({ where: { id: roomId, adminId: req.admin.id }, include: { hostel: true } })
     ]);
 
     if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
@@ -70,7 +71,7 @@ router.post('/', protect, async (req, res, next) => {
         data: { occupiedBeds: { increment: 1 } }
       }),
       prisma.roomAllocation.create({
-        data: { studentId, roomId, bedNo, checkIn: new Date(), status: 'Active' }
+        data: { studentId, roomId, bedNo, checkIn: new Date(), status: 'Active', adminId: req.admin.id }
       })
     ]);
 
@@ -87,8 +88,8 @@ router.post('/allocate', protect, async (req, res, next) => {
     }
 
     const [student, room] = await Promise.all([
-      prisma.student.findUnique({ where: { id: studentId } }),
-      prisma.room.findUnique({ where: { id: roomId }, include: { hostel: true } })
+      prisma.student.findFirst({ where: { id: studentId, adminId: req.admin.id } }),
+      prisma.room.findFirst({ where: { id: roomId, adminId: req.admin.id }, include: { hostel: true } })
     ]);
 
     if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
@@ -109,7 +110,7 @@ router.post('/allocate', protect, async (req, res, next) => {
         data: { occupiedBeds: { increment: 1 } }
       }),
       prisma.roomAllocation.create({
-        data: { studentId, roomId, bedNo, checkIn: new Date(), status: 'Active' }
+        data: { studentId, roomId, bedNo, checkIn: new Date(), status: 'Active', adminId: req.admin.id }
       })
     ]);
 
@@ -127,8 +128,8 @@ router.post('/transfer', protect, async (req, res, next) => {
     }
 
     const [student, targetRoom] = await Promise.all([
-      prisma.student.findUnique({ where: { id: studentId } }),
-      prisma.room.findUnique({ where: { id: targetRoomId }, include: { hostel: true } })
+      prisma.student.findFirst({ where: { id: studentId, adminId: req.admin.id } }),
+      prisma.room.findFirst({ where: { id: targetRoomId, adminId: req.admin.id }, include: { hostel: true } })
     ]);
 
     if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
@@ -145,7 +146,7 @@ router.post('/transfer', protect, async (req, res, next) => {
     await prisma.$transaction([
       // Close current active allocation
       prisma.roomAllocation.updateMany({
-        where: { studentId, roomId: currentRoomId, status: 'Active' },
+        where: { studentId, roomId: currentRoomId, status: 'Active', adminId: req.admin.id },
         data: { checkOut: new Date(), status: 'CheckedOut' }
       }),
       // Decrement occupied beds of current room
@@ -165,7 +166,7 @@ router.post('/transfer', protect, async (req, res, next) => {
       }),
       // Create new active allocation
       prisma.roomAllocation.create({
-        data: { studentId, roomId: targetRoomId, bedNo: targetBedNo, checkIn: new Date(), status: 'Active' }
+        data: { studentId, roomId: targetRoomId, bedNo: targetBedNo, checkIn: new Date(), status: 'Active', adminId: req.admin.id }
       })
     ]);
 
@@ -180,7 +181,7 @@ router.post('/checkout', protect, async (req, res, next) => {
     const { studentId } = req.body;
     if (!studentId) return res.status(400).json({ success: false, message: 'Student ID is required' });
 
-    const student = await prisma.student.findUnique({ where: { id: studentId } });
+    const student = await prisma.student.findFirst({ where: { id: studentId, adminId: req.admin.id } });
     if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
     if (!student.roomId) return res.status(400).json({ success: false, message: 'Student is not currently allocated to any room' });
 
@@ -189,7 +190,7 @@ router.post('/checkout', protect, async (req, res, next) => {
     await prisma.$transaction([
       // Close allocation
       prisma.roomAllocation.updateMany({
-        where: { studentId, roomId, status: 'Active' },
+        where: { studentId, roomId, status: 'Active', adminId: req.admin.id },
         data: { checkOut: new Date(), status: 'CheckedOut' }
       }),
       // Update room occupied bed count
@@ -212,8 +213,8 @@ router.post('/checkout', protect, async (req, res, next) => {
 // PUT /api/allocations/:id/checkout
 router.put('/:id/checkout', protect, async (req, res, next) => {
   try {
-    const allocation = await prisma.roomAllocation.findUnique({
-      where: { id: req.params.id }
+    const allocation = await prisma.roomAllocation.findFirst({
+      where: { id: req.params.id, adminId: req.admin.id }
     });
     if (!allocation) return res.status(404).json({ success: false, message: 'Allocation not found' });
     if (allocation.status === 'CheckedOut') {
@@ -240,7 +241,7 @@ router.put('/:id/checkout', protect, async (req, res, next) => {
       })
     ]);
 
-    const student = await prisma.student.findUnique({ where: { id: studentId } });
+    const student = await prisma.student.findFirst({ where: { id: studentId, adminId: req.admin.id } });
     await log('CheckedOut', `Checked out student ${student?.name || 'Student'}`, req.admin.id);
     res.json({ success: true, message: 'Student checked out successfully' });
   } catch (err) { next(err); }

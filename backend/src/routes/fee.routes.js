@@ -12,13 +12,14 @@ const log = async (action, detail, userId) => {
 router.get('/', protect, async (req, res, next) => {
   try {
     const { status, studentId, search, page = 1, limit = 20 } = req.query;
-    const where = {};
+    const where = { adminId: req.admin.id };
     
     if (status) where.status = status;
     if (studentId) where.studentId = studentId;
     if (search) {
       where.student = {
-        name: { contains: search }
+        name: { contains: search },
+        adminId: req.admin.id
       };
     }
 
@@ -48,8 +49,8 @@ router.get('/', protect, async (req, res, next) => {
 // GET /api/fees/:id
 router.get('/:id', protect, async (req, res, next) => {
   try {
-    const fee = await prisma.fee.findUnique({
-      where: { id: req.params.id },
+    const fee = await prisma.fee.findFirst({
+      where: { id: req.params.id, adminId: req.admin.id },
       include: {
         student: {
           include: {
@@ -71,9 +72,16 @@ router.post('/generate', protect, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Month and Year are required' });
     }
 
-    // Get all active students allocated to a room
+    // Get admin settings to load default amounts
+    const adminSettings = await prisma.admin.findUnique({ where: { id: req.admin.id } });
+    const isDual = adminSettings?.enableDualAccounts ?? false;
+    const amount1 = adminSettings?.account1DefaultAmount ?? 3000;
+    const amount2 = adminSettings?.account2DefaultAmount ?? 4500;
+    const singleAmount = adminSettings?.defaultMonthlyAmount ?? 7500;
+
+    // Get all active students allocated to a room under this admin
     const activeStudents = await prisma.student.findMany({
-      where: { status: 'Active', roomId: { not: null } }
+      where: { status: 'Active', roomId: { not: null }, adminId: req.admin.id }
     });
 
     let count = 0;
@@ -85,19 +93,21 @@ router.post('/generate', protect, async (req, res, next) => {
           studentId: student.id,
           type: 'Monthly',
           month: +month,
-          year: +year
+          year: +year,
+          adminId: req.admin.id
         }
       });
 
       if (!existingFee) {
         records.push({
           studentId: student.id,
+          adminId: req.admin.id,
           type: 'Monthly',
           month: +month,
           year: +year,
-          amount: 7500,
-          amountAccount1: 3000,
-          amountAccount2: 4500,
+          amount: isDual ? (amount1 + amount2) : singleAmount,
+          amountAccount1: isDual ? amount1 : 0,
+          amountAccount2: isDual ? amount2 : 0,
           paidAccount1: 0,
           paidAccount2: 0,
           paidAmount: 0,
@@ -110,29 +120,44 @@ router.post('/generate', protect, async (req, res, next) => {
 
     if (records.length > 0) {
       await prisma.fee.createMany({ data: records });
-      await log('Generated', `Generated monthly split bills for ${count} students for month ${month}/${year}`, req.admin.id);
+      await log('Generated', `Generated monthly bills for ${count} students for month ${month}/${year}`, req.admin.id);
     }
 
     res.json({ success: true, count, message: `Successfully generated ${count} fee records.` });
   } catch (err) { next(err); }
 });
 
-// POST /api/fees (Create individual fee card)
+// POST /api/fees
 router.post('/', protect, async (req, res, next) => {
   try {
-    const { studentId, type, amountAccount1 = 3000, amountAccount2 = 4500, month, year, dueDate } = req.body;
+    const { studentId, type, amountAccount1, amountAccount2, amount: inputAmount, month, year, dueDate } = req.body;
     
-    const amount = (+amountAccount1 || 0) + (+amountAccount2 || 0);
+    // Get admin settings to check if dual accounts enabled
+    const adminSettings = await prisma.admin.findUnique({ where: { id: req.admin.id } });
+    const isDual = adminSettings?.enableDualAccounts ?? false;
+
+    let finalAmount = 0;
+    let finalAmt1 = 0;
+    let finalAmt2 = 0;
+
+    if (isDual) {
+      finalAmt1 = amountAccount1 !== undefined ? +amountAccount1 : (adminSettings?.account1DefaultAmount ?? 3000);
+      finalAmt2 = amountAccount2 !== undefined ? +amountAccount2 : (adminSettings?.account2DefaultAmount ?? 4500);
+      finalAmount = finalAmt1 + finalAmt2;
+    } else {
+      finalAmount = inputAmount !== undefined ? +inputAmount : (adminSettings?.defaultMonthlyAmount ?? 7500);
+    }
 
     const fee = await prisma.fee.create({
       data: {
         studentId,
+        adminId: req.admin.id,
         type,
         month: +month || null,
         year: +year || null,
-        amount,
-        amountAccount1: +amountAccount1,
-        amountAccount2: +amountAccount2,
+        amount: finalAmount,
+        amountAccount1: finalAmt1,
+        amountAccount2: finalAmt2,
         paidAccount1: 0,
         paidAccount2: 0,
         paidAmount: 0,
@@ -140,7 +165,7 @@ router.post('/', protect, async (req, res, next) => {
         status: 'Pending'
       }
     });
-    await log('Created', `Created split fee record ID ${fee.id} for student ID ${fee.studentId}`, req.admin.id);
+    await log('Created', `Created fee record ID ${fee.id} for student ID ${fee.studentId}`, req.admin.id);
     res.status(201).json({ success: true, fee });
   } catch (err) { next(err); }
 });
@@ -148,20 +173,41 @@ router.post('/', protect, async (req, res, next) => {
 // PUT /api/fees/:id/pay
 router.put('/:id/pay', protect, async (req, res, next) => {
   try {
-    const { paidAccount1, paidAccount2, discount, fine, paymentMode, transactionId, notes } = req.body;
-    const fee = await prisma.fee.findUnique({ where: { id: req.params.id } });
+    const { paidAccount1, paidAccount2, paidAmount: inputPaidAmount, discount, fine, paymentMode, transactionId, notes } = req.body;
+    
+    const fee = await prisma.fee.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
     if (!fee) return res.status(404).json({ success: false, message: 'Fee record not found' });
 
-    const newPaidAccount1 = fee.paidAccount1 + (+paidAccount1 || 0);
-    const newPaidAccount2 = fee.paidAccount2 + (+paidAccount2 || 0);
-    const totalPaid = newPaidAccount1 + newPaidAccount2;
+    const adminSettings = await prisma.admin.findUnique({ where: { id: req.admin.id } });
+    const isDual = adminSettings?.enableDualAccounts ?? false;
+
+    let newPaidAccount1 = fee.paidAccount1;
+    let newPaidAccount2 = fee.paidAccount2;
+    let newPaidAmount = fee.paidAmount;
+
+    if (isDual) {
+      newPaidAccount1 += (+paidAccount1 || 0);
+      newPaidAccount2 += (+paidAccount2 || 0);
+      newPaidAmount = newPaidAccount1 + newPaidAccount2;
+    } else {
+      newPaidAmount += (+inputPaidAmount || 0);
+    }
+
     const totalAmount = fee.amount + (+fine || 0) - (+discount || 0);
 
     let status = 'Pending';
-    if (newPaidAccount1 >= fee.amountAccount1 && newPaidAccount2 >= fee.amountAccount2) {
-      status = 'Paid';
-    } else if (newPaidAccount1 > 0 || newPaidAccount2 > 0) {
-      status = 'Partial';
+    if (isDual) {
+      if (newPaidAccount1 >= fee.amountAccount1 && newPaidAccount2 >= fee.amountAccount2) {
+        status = 'Paid';
+      } else if (newPaidAccount1 > 0 || newPaidAccount2 > 0) {
+        status = 'Partial';
+      }
+    } else {
+      if (newPaidAmount >= totalAmount) {
+        status = 'Paid';
+      } else if (newPaidAmount > 0) {
+        status = 'Partial';
+      }
     }
 
     const receiptNumber = 'REC-' + Date.now().toString().slice(-8).toUpperCase();
@@ -171,7 +217,7 @@ router.put('/:id/pay', protect, async (req, res, next) => {
       data: {
         paidAccount1: newPaidAccount1,
         paidAccount2: newPaidAccount2,
-        paidAmount: totalPaid,
+        paidAmount: newPaidAmount,
         discount: fee.discount + (+discount || 0),
         fine: fee.fine + (+fine || 0),
         paymentMode,
@@ -183,7 +229,7 @@ router.put('/:id/pay', protect, async (req, res, next) => {
       }
     });
 
-    await log('Paid', `Processed split payment for record ID ${fee.id}`, req.admin.id);
+    await log('Paid', `Processed payment for record ID ${fee.id}`, req.admin.id);
     res.json({ success: true, fee: updated });
   } catch (err) { next(err); }
 });
@@ -191,6 +237,9 @@ router.put('/:id/pay', protect, async (req, res, next) => {
 // DELETE /api/fees/:id
 router.delete('/:id', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.fee.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Fee record not found' });
+
     await prisma.fee.delete({ where: { id: req.params.id } });
     await log('Deleted', `Deleted fee record ID ${req.params.id}`, req.admin.id);
     res.json({ success: true, message: 'Fee record deleted' });

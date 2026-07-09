@@ -19,7 +19,7 @@ const mapStaffResponse = (s) => ({
 router.get('/', protect, async (req, res, next) => {
   try {
     const { search, designation, status } = req.query;
-    const where = {};
+    const where = { adminId: req.admin.id };
 
     if (designation) where.designation = designation;
     if (status) where.status = status;
@@ -53,7 +53,8 @@ router.post('/', protect, async (req, res, next) => {
         department: shift !== undefined ? shift : department,
         salary: salary !== undefined ? +salary : undefined,
         address,
-        status
+        status,
+        adminId: req.admin.id
       }
     });
     await log('Created', `Added staff member: ${staff.name} (${staff.designation})`, req.admin.id);
@@ -64,6 +65,9 @@ router.post('/', protect, async (req, res, next) => {
 // PUT /api/staff/:id
 router.put('/:id', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.staff.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Staff member not found' });
+
     const { name, email, phone, role, shift, designation, department, salary, address, status } = req.body;
     const updateData = {};
     if (name !== undefined) updateData.name = name;
@@ -91,7 +95,9 @@ router.put('/:id', protect, async (req, res, next) => {
 // DELETE /api/staff/:id
 router.delete('/:id', protect, async (req, res, next) => {
   try {
-    const staff = await prisma.staff.findUnique({ where: { id: req.params.id } });
+    const staff = await prisma.staff.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!staff) return res.status(404).json({ success: false, message: 'Staff member not found' });
+
     await prisma.staff.delete({ where: { id: req.params.id } });
     await log('Deleted', `Deleted staff member: ${staff.name}`, req.admin.id);
     res.json({ success: true, message: 'Staff deleted successfully' });

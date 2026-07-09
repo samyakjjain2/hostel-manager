@@ -24,9 +24,9 @@ router.post('/register', async (req, res, next) => {
     const admin = await prisma.admin.create({
       data: { name, email, passwordHash, phone: phone || null }
     });
-
+    delete admin.passwordHash;
     const token = signToken(admin.id, admin.email, admin.name);
-    res.status(201).json({ success: true, token, admin: { id: admin.id, name: admin.name, email: admin.email, avatar: admin.avatar } });
+    res.status(201).json({ success: true, token, admin });
   } catch (err) { next(err); }
 });
 
@@ -43,14 +43,16 @@ router.post('/login', async (req, res, next) => {
     if (!valid) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
     const token = signToken(admin.id, admin.email, admin.name);
-    res.json({ success: true, token, admin: { id: admin.id, name: admin.name, email: admin.email, avatar: admin.avatar } });
+    delete admin.passwordHash;
+    res.json({ success: true, token, admin });
   } catch (err) { next(err); }
 });
 
 // GET /api/auth/me
 router.get('/me', protect, async (req, res, next) => {
   try {
-    const admin = await prisma.admin.findUnique({ where: { id: req.admin.id }, select: { id: true, name: true, email: true, avatar: true, phone: true } });
+    const admin = await prisma.admin.findUnique({ where: { id: req.admin.id } });
+    if (admin) delete admin.passwordHash;
     res.json({ success: true, admin });
   } catch (err) { next(err); }
 });
@@ -58,8 +60,42 @@ router.get('/me', protect, async (req, res, next) => {
 // PUT /api/auth/profile
 router.put('/profile', protect, async (req, res, next) => {
   try {
-    const { name, phone } = req.body;
-    const admin = await prisma.admin.update({ where: { id: req.admin.id }, data: { name, phone }, select: { id: true, name: true, email: true, phone: true, avatar: true } });
+    const {
+      name,
+      phone,
+      hostelName,
+      hostelAddress,
+      hostelPhone,
+      signatoryName,
+      enableDualAccounts,
+      account1Name,
+      account2Name,
+      account1Prefix,
+      account2Prefix,
+      account1DefaultAmount,
+      account2DefaultAmount,
+      defaultMonthlyAmount
+    } = req.body;
+
+    const data = { name, phone };
+    if (hostelName !== undefined) data.hostelName = hostelName;
+    if (hostelAddress !== undefined) data.hostelAddress = hostelAddress;
+    if (hostelPhone !== undefined) data.hostelPhone = hostelPhone;
+    if (signatoryName !== undefined) data.signatoryName = signatoryName;
+    if (enableDualAccounts !== undefined) data.enableDualAccounts = !!enableDualAccounts;
+    if (account1Name !== undefined) data.account1Name = account1Name;
+    if (account2Name !== undefined) data.account2Name = account2Name;
+    if (account1Prefix !== undefined) data.account1Prefix = account1Prefix;
+    if (account2Prefix !== undefined) data.account2Prefix = account2Prefix;
+    if (account1DefaultAmount !== undefined) data.account1DefaultAmount = parseFloat(account1DefaultAmount) || 0;
+    if (account2DefaultAmount !== undefined) data.account2DefaultAmount = parseFloat(account2DefaultAmount) || 0;
+    if (defaultMonthlyAmount !== undefined) data.defaultMonthlyAmount = parseFloat(defaultMonthlyAmount) || 0;
+
+    const admin = await prisma.admin.update({
+      where: { id: req.admin.id },
+      data
+    });
+    delete admin.passwordHash;
     res.json({ success: true, admin });
   } catch (err) { next(err); }
 });

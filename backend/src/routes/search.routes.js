@@ -22,6 +22,7 @@ router.get('/', protect, async (req, res, next) => {
       // 1. Search Students
       prisma.student.findMany({
         where: {
+          adminId: req.admin.id,
           OR: [
             { name: { contains: searchQuery } },
             { enrollmentNumber: { contains: searchQuery } },
@@ -40,6 +41,7 @@ router.get('/', protect, async (req, res, next) => {
       // 2. Search Rooms
       prisma.room.findMany({
         where: {
+          adminId: req.admin.id,
           roomNumber: { contains: searchQuery }
         },
         include: {
@@ -52,6 +54,7 @@ router.get('/', protect, async (req, res, next) => {
       // 3. Search Staff
       prisma.staff.findMany({
         where: {
+          adminId: req.admin.id,
           OR: [
             { name: { contains: searchQuery } },
             { designation: { contains: searchQuery } }
@@ -63,6 +66,7 @@ router.get('/', protect, async (req, res, next) => {
       // 4. Search Complaints
       prisma.complaint.findMany({
         where: {
+          adminId: req.admin.id,
           OR: [
             { title: { contains: searchQuery } },
             { description: { contains: searchQuery } }

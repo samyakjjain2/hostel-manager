@@ -1,46 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
-import { User, Phone, Mail, Key } from 'lucide-react';
+import { User, Phone, Mail, Key, Building2, Settings2, ToggleLeft, ToggleRight, IndianRupee, FileText } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
+const inputCls = "w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-2.5 px-3.5 text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs sm:text-sm";
+const labelCls = "block font-semibold text-slate-600 dark:text-zinc-400 mb-1 text-xs";
+const cardCls = "premium-card p-5 space-y-4";
+const sectionHeaderCls = "text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-1.5 border-b border-slate-100 dark:border-zinc-800 pb-2";
+
 export const Profile = () => {
   const { user, updateProfile } = useAuth();
-  
-  // Profile update state
+
+  // --- Account info state ---
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     phone: user?.phone || ''
   });
 
-  // Password reset state
-  const [pwData, setPwData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+  // --- Hostel & Invoice settings state ---
+  const [settings, setSettings] = useState({
+    hostelName: user?.hostelName || '',
+    hostelAddress: user?.hostelAddress || '',
+    hostelPhone: user?.hostelPhone || '',
+    signatoryName: user?.signatoryName || '',
+    enableDualAccounts: user?.enableDualAccounts ?? false,
+    account1Name: user?.account1Name || 'Account 1',
+    account2Name: user?.account2Name || 'Account 2',
+    account1Prefix: user?.account1Prefix || 'PC',
+    account2Prefix: user?.account2Prefix || 'RJ&A',
+    account1DefaultAmount: user?.account1DefaultAmount ?? 3000,
+    account2DefaultAmount: user?.account2DefaultAmount ?? 4500,
+    defaultMonthlyAmount: user?.defaultMonthlyAmount ?? 7500,
   });
+
+  // Keep local states in sync when user loads from AuthContext
+  useEffect(() => {
+    if (user) {
+      setProfileData({ name: user.name || '', phone: user.phone || '' });
+      setSettings({
+        hostelName: user.hostelName || '',
+        hostelAddress: user.hostelAddress || '',
+        hostelPhone: user.hostelPhone || '',
+        signatoryName: user.signatoryName || '',
+        enableDualAccounts: user.enableDualAccounts ?? false,
+        account1Name: user.account1Name || 'Account 1',
+        account2Name: user.account2Name || 'Account 2',
+        account1Prefix: user.account1Prefix || 'PC',
+        account2Prefix: user.account2Prefix || 'RJ&A',
+        account1DefaultAmount: user.account1DefaultAmount ?? 3000,
+        account2DefaultAmount: user.account2DefaultAmount ?? 4500,
+        defaultMonthlyAmount: user.defaultMonthlyAmount ?? 7500,
+      });
+    }
+  }, [user]);
+
+  // --- Password state ---
+  const [pwData, setPwData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [savingPw, setSavingPw] = useState(false);
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
+    setSavingProfile(true);
     try {
       const res = await updateProfile(profileData);
-      if (res.success) {
-        toast.success('Profile details saved successfully');
-      }
+      if (res.success) toast.success('Account profile saved');
     } catch {
-      toast.error('Failed to save profile changes');
+      toast.error('Failed to save profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleSettingsSubmit = async (e) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+      const res = await updateProfile(settings);
+      if (res.success) toast.success('Settings saved successfully');
+    } catch {
+      toast.error('Failed to save settings');
+    } finally {
+      setSavingSettings(false);
     }
   };
 
   const handlePwSubmit = async (e) => {
     e.preventDefault();
     if (pwData.newPassword !== pwData.confirmPassword) {
-      toast.error('New password fields do not match');
+      toast.error('New passwords do not match');
       return;
     }
-
+    setSavingPw(true);
     try {
       const res = await axios.put(`${API_URL}/auth/change-password`, {
         currentPassword: pwData.currentPassword,
@@ -52,111 +107,230 @@ export const Profile = () => {
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Password update failed');
+    } finally {
+      setSavingPw(false);
     }
   };
+
+  const toggle = (field) => setSettings(s => ({ ...s, [field]: !s[field] }));
 
   return (
     <div className="space-y-6 text-xs sm:text-sm text-left">
       <div>
-        <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">Manager Profile Settings</h1>
-        <p className="text-slate-505 dark:text-zinc-400 text-xs mt-1">Configure profile details and account security settings.</p>
+        <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">Profile & Settings</h1>
+        <p className="text-slate-500 dark:text-zinc-400 text-xs mt-1">Manage your account, hostel branding, and invoice configuration.</p>
       </div>
 
+      {/* Row 1: Account Info + Password */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Profile Card details */}
-        <div className="premium-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-1.5 border-b border-slate-100 dark:border-zinc-800 pb-2">
-            <User size={16} className="text-blue-500" /> Account Information
+        {/* Account Info */}
+        <div className={cardCls}>
+          <h3 className={sectionHeaderCls}>
+            <User size={15} className="text-blue-500" /> Account Information
           </h3>
-
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="font-semibold text-slate-650 dark:text-zinc-405">Email Address (Read-only)</label>
+          <form onSubmit={handleProfileSubmit} className="space-y-3">
+            <div>
+              <label className={labelCls}>Email Address (Read-only)</label>
               <div className="relative">
                 <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input 
-                  type="email" 
-                  disabled 
-                  value={user?.email || ''} 
-                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 py-2.5 pl-10 pr-4 text-slate-450 dark:text-zinc-500 outline-none cursor-not-allowed" 
-                />
+                <input type="email" disabled value={user?.email || ''}
+                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 py-2.5 pl-10 pr-4 text-slate-400 dark:text-zinc-500 outline-none cursor-not-allowed text-xs sm:text-sm" />
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <label className="font-semibold text-slate-655 dark:text-zinc-405">Full Name *</label>
+            <div>
+              <label className={labelCls}>Full Name *</label>
               <div className="relative">
                 <User className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input 
-                  type="text" 
-                  required 
-                  value={profileData.name} 
-                  onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} 
-                  className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-2.5 pl-10 pr-4 text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-                />
+                <input type="text" required value={profileData.name}
+                  onChange={e => setProfileData({ ...profileData, name: e.target.value })}
+                  className={`${inputCls} pl-10`} />
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <label className="font-semibold text-slate-655 dark:text-zinc-405">Contact Number</label>
+            <div>
+              <label className={labelCls}>Contact Number</label>
               <div className="relative">
                 <Phone className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input 
-                  type="text" 
-                  value={profileData.phone} 
-                  onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })} 
-                  className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-955 py-2.5 pl-10 pr-4 text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-                />
+                <input type="text" value={profileData.phone}
+                  onChange={e => setProfileData({ ...profileData, phone: e.target.value })}
+                  className={`${inputCls} pl-10`} />
               </div>
             </div>
-
-            <Button variant="gradient" type="submit" className="w-full cursor-pointer">Save Account Profile</Button>
+            <Button variant="gradient" type="submit" disabled={savingProfile} className="w-full cursor-pointer">
+              {savingProfile ? 'Saving…' : 'Save Account Profile'}
+            </Button>
           </form>
         </div>
 
-        {/* Security Password settings */}
-        <div className="premium-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-1.5 border-b border-slate-100 dark:border-zinc-800 pb-2">
-            <Key size={16} className="text-blue-500" /> Change Security Password
+        {/* Change Password */}
+        <div className={cardCls}>
+          <h3 className={sectionHeaderCls}>
+            <Key size={15} className="text-blue-500" /> Change Password
           </h3>
-
-          <form onSubmit={handlePwSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="font-semibold text-slate-655 dark:text-zinc-405">Current Password *</label>
-              <input 
-                type="password" 
-                required 
-                value={pwData.currentPassword} 
-                onChange={(e) => setPwData({ ...pwData, currentPassword: e.target.value })} 
-                className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-2.5 px-3.5 text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-              />
+          <form onSubmit={handlePwSubmit} className="space-y-3">
+            <div>
+              <label className={labelCls}>Current Password *</label>
+              <input type="password" required value={pwData.currentPassword}
+                onChange={e => setPwData({ ...pwData, currentPassword: e.target.value })}
+                className={inputCls} />
             </div>
-
-            <div className="space-y-1.5">
-              <label className="font-semibold text-slate-655 dark:text-zinc-405">New Password *</label>
-              <input 
-                type="password" 
-                required 
-                value={pwData.newPassword} 
-                onChange={(e) => setPwData({ ...pwData, newPassword: e.target.value })} 
-                className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-2.5 px-3.5 text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-              />
+            <div>
+              <label className={labelCls}>New Password *</label>
+              <input type="password" required value={pwData.newPassword}
+                onChange={e => setPwData({ ...pwData, newPassword: e.target.value })}
+                className={inputCls} />
             </div>
-
-            <div className="space-y-1.5">
-              <label className="font-semibold text-slate-655 dark:text-zinc-405">Confirm New Password *</label>
-              <input 
-                type="password" 
-                required 
-                value={pwData.confirmPassword} 
-                onChange={(e) => setPwData({ ...pwData, confirmPassword: e.target.value })} 
-                className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-955 py-2.5 px-3.5 text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-              />
+            <div>
+              <label className={labelCls}>Confirm New Password *</label>
+              <input type="password" required value={pwData.confirmPassword}
+                onChange={e => setPwData({ ...pwData, confirmPassword: e.target.value })}
+                className={inputCls} />
             </div>
-
-            <Button variant="outline" type="submit" className="w-full cursor-pointer hover:bg-blue-600 hover:text-white hover:border-transparent">Update Password</Button>
+            <Button variant="outline" type="submit" disabled={savingPw} className="w-full cursor-pointer hover:bg-blue-600 hover:text-white hover:border-transparent">
+              {savingPw ? 'Updating…' : 'Update Password'}
+            </Button>
           </form>
         </div>
+      </div>
+
+      {/* Row 2: Hostel Settings (full width) */}
+      <div className={cardCls}>
+        <h3 className={sectionHeaderCls}>
+          <Building2 size={15} className="text-emerald-500" /> Hostel Branding & Invoice Settings
+        </h3>
+        <p className="text-xs text-slate-500 dark:text-zinc-500 -mt-2 mb-1">These values appear on printed receipts and invoices.</p>
+        <form onSubmit={handleSettingsSubmit} className="space-y-5">
+
+          {/* Hostel Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Hostel / Institution Name *</label>
+              <input type="text" required value={settings.hostelName}
+                onChange={e => setSettings({ ...settings, hostelName: e.target.value })}
+                className={inputCls} placeholder="e.g. Pratibha Hostel" />
+            </div>
+            <div>
+              <label className={labelCls}>Hostel Contact / Phone</label>
+              <input type="text" value={settings.hostelPhone}
+                onChange={e => setSettings({ ...settings, hostelPhone: e.target.value })}
+                className={inputCls} placeholder="e.g. 9876543210" />
+            </div>
+            <div className="md:col-span-2">
+              <label className={labelCls}>Hostel Address</label>
+              <textarea rows={2} value={settings.hostelAddress}
+                onChange={e => setSettings({ ...settings, hostelAddress: e.target.value })}
+                className={`${inputCls} resize-none`} placeholder="Full address for invoice header" />
+            </div>
+            <div>
+              <label className={labelCls}>Authorized Signatory Name</label>
+              <input type="text" value={settings.signatoryName}
+                onChange={e => setSettings({ ...settings, signatoryName: e.target.value })}
+                className={inputCls} placeholder="Name appearing at bottom of receipt" />
+            </div>
+          </div>
+
+          {/* Billing Mode Toggle */}
+          <div className="border-t border-slate-100 dark:border-zinc-800 pt-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <p className="font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+                  <Settings2 size={14} className="text-purple-500" /> Split / Dual-Account Billing
+                </p>
+                <p className="text-xs text-slate-500 dark:text-zinc-500 mt-0.5">
+                  Enable this to split each fee bill across two separate accounts (e.g. institution + mess).
+                </p>
+              </div>
+              <button type="button" onClick={() => toggle('enableDualAccounts')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  settings.enableDualAccounts
+                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700'
+                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700'
+                }`}>
+                {settings.enableDualAccounts
+                  ? <><ToggleRight size={18} /> Split Billing ON</>
+                  : <><ToggleLeft size={18} /> Split Billing OFF</>}
+              </button>
+            </div>
+          </div>
+
+          {/* Single Account Amount (shown when dual is OFF) */}
+          {!settings.enableDualAccounts && (
+            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <p className="font-semibold text-blue-700 dark:text-blue-300 text-xs mb-3 flex items-center gap-1.5">
+                <IndianRupee size={13} /> Single Account Mode — Default Monthly Fee
+              </p>
+              <div>
+                <label className={labelCls}>Default Monthly Rent Amount (₹)</label>
+                <input type="number" min="0" value={settings.defaultMonthlyAmount}
+                  onChange={e => setSettings({ ...settings, defaultMonthlyAmount: +e.target.value })}
+                  className={inputCls} placeholder="e.g. 7500" />
+                <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">Used when generating monthly fees automatically.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Dual Account Config (shown when dual is ON) */}
+          {settings.enableDualAccounts && (
+            <div className="bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 rounded-lg p-4 space-y-4">
+              <p className="font-semibold text-purple-700 dark:text-purple-300 text-xs flex items-center gap-1.5">
+                <FileText size={13} /> Dual Account Mode — Configure Both Accounts
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Account 1 */}
+                <div className="space-y-3 p-3 rounded-lg bg-white dark:bg-zinc-900 border border-purple-200 dark:border-purple-800">
+                  <p className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">Account 1</p>
+                  <div>
+                    <label className={labelCls}>Account Name</label>
+                    <input type="text" value={settings.account1Name}
+                      onChange={e => setSettings({ ...settings, account1Name: e.target.value })}
+                      className={inputCls} placeholder="e.g. Institution Fee" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Receipt Prefix / Code</label>
+                    <input type="text" value={settings.account1Prefix}
+                      onChange={e => setSettings({ ...settings, account1Prefix: e.target.value })}
+                      className={inputCls} placeholder="e.g. PC" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Default Amount (₹)</label>
+                    <input type="number" min="0" value={settings.account1DefaultAmount}
+                      onChange={e => setSettings({ ...settings, account1DefaultAmount: +e.target.value })}
+                      className={inputCls} />
+                  </div>
+                </div>
+
+                {/* Account 2 */}
+                <div className="space-y-3 p-3 rounded-lg bg-white dark:bg-zinc-900 border border-purple-200 dark:border-purple-800">
+                  <p className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">Account 2</p>
+                  <div>
+                    <label className={labelCls}>Account Name</label>
+                    <input type="text" value={settings.account2Name}
+                      onChange={e => setSettings({ ...settings, account2Name: e.target.value })}
+                      className={inputCls} placeholder="e.g. Mess / Food" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Receipt Prefix / Code</label>
+                    <input type="text" value={settings.account2Prefix}
+                      onChange={e => setSettings({ ...settings, account2Prefix: e.target.value })}
+                      className={inputCls} placeholder="e.g. RJ&A" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Default Amount (₹)</label>
+                    <input type="number" min="0" value={settings.account2DefaultAmount}
+                      onChange={e => setSettings({ ...settings, account2DefaultAmount: +e.target.value })}
+                      className={inputCls} />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-zinc-500">
+                Total default split: ₹{(+settings.account1DefaultAmount + +settings.account2DefaultAmount).toLocaleString('en-IN')} per student/month
+              </p>
+            </div>
+          )}
+
+          <Button variant="gradient" type="submit" disabled={savingSettings} className="w-full cursor-pointer">
+            {savingSettings ? 'Saving Settings…' : 'Save Hostel & Invoice Settings'}
+          </Button>
+        </form>
       </div>
     </div>
   );

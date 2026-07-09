@@ -12,7 +12,7 @@ const log = async (action, detail, userId) => {
 router.get('/', protect, async (req, res, next) => {
   try {
     const { status, priority, category, search } = req.query;
-    const where = {};
+    const where = { adminId: req.admin.id };
 
     if (status) where.status = status;
     if (priority) where.priority = priority;
@@ -20,7 +20,7 @@ router.get('/', protect, async (req, res, next) => {
     if (search) {
       where.OR = [
         { title: { contains: search } },
-        { student: { name: { contains: search } } }
+        { student: { name: { contains: search }, adminId: req.admin.id } }
       ];
     }
 
@@ -39,7 +39,10 @@ router.get('/', protect, async (req, res, next) => {
 // POST /api/complaints
 router.post('/', protect, async (req, res, next) => {
   try {
-    const complaint = await prisma.complaint.create({ data: req.body });
+    const student = await prisma.student.findFirst({ where: { id: req.body.studentId, adminId: req.admin.id } });
+    if (!student) return res.status(400).json({ success: false, message: 'Invalid Student ID' });
+
+    const complaint = await prisma.complaint.create({ data: { ...req.body, adminId: req.admin.id } });
     await log('Created', `Registered complaint: "${complaint.title}"`, req.admin.id);
     res.status(201).json({ success: true, complaint });
   } catch (err) { next(err); }
@@ -48,6 +51,9 @@ router.post('/', protect, async (req, res, next) => {
 // PUT /api/complaints/:id
 router.put('/:id', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.complaint.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Complaint not found' });
+
     const { status, assignedTo, notes } = req.body;
     
     const data = { status, assignedTo, notes };
@@ -68,6 +74,9 @@ router.put('/:id', protect, async (req, res, next) => {
 // PUT /api/complaints/:id/resolve
 router.put('/:id/resolve', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.complaint.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Complaint not found' });
+
     const { feedback } = req.body;
     const complaint = await prisma.complaint.update({
       where: { id: req.params.id },
@@ -85,6 +94,9 @@ router.put('/:id/resolve', protect, async (req, res, next) => {
 // DELETE /api/complaints/:id
 router.delete('/:id', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.complaint.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Complaint not found' });
+
     await prisma.complaint.delete({ where: { id: req.params.id } });
     await log('Deleted', `Deleted complaint record ID ${req.params.id}`, req.admin.id);
     res.json({ success: true, message: 'Complaint deleted' });

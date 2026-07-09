@@ -9,7 +9,7 @@ const log = async (action, detail, userId) => { try { await prisma.activityLog.c
 router.get('/', protect, async (req, res, next) => {
   try {
     const { hostelId, floor, type, status, search, page = 1, limit = 20 } = req.query;
-    const where = {};
+    const where = { adminId: req.admin.id };
     if (hostelId) where.hostelId = hostelId;
     if (floor) where.floor = +floor;
     if (type) where.type = type;
@@ -25,7 +25,7 @@ router.get('/', protect, async (req, res, next) => {
 
 router.get('/:id', protect, async (req, res, next) => {
   try {
-    const room = await prisma.room.findUnique({ where: { id: req.params.id }, include: { hostel: true, students: { select: { id: true, name: true, photo: true, phone: true, status: true } } } });
+    const room = await prisma.room.findFirst({ where: { id: req.params.id, adminId: req.admin.id }, include: { hostel: true, students: { select: { id: true, name: true, photo: true, phone: true, status: true } } } });
     if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
     res.json({ success: true, room });
   } catch (err) { next(err); }
@@ -33,7 +33,7 @@ router.get('/:id', protect, async (req, res, next) => {
 
 router.post('/', protect, async (req, res, next) => {
   try {
-    const room = await prisma.room.create({ data: req.body });
+    const room = await prisma.room.create({ data: { ...req.body, adminId: req.admin.id } });
     await log('Created', `Added room ${room.roomNumber}`, req.admin.id);
     res.status(201).json({ success: true, room });
   } catch (err) { next(err); }
@@ -41,6 +41,9 @@ router.post('/', protect, async (req, res, next) => {
 
 router.put('/:id', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.room.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Room not found' });
+
     const room = await prisma.room.update({ where: { id: req.params.id }, data: req.body });
     await log('Updated', `Updated room ${room.roomNumber}`, req.admin.id);
     res.json({ success: true, room });
@@ -49,7 +52,9 @@ router.put('/:id', protect, async (req, res, next) => {
 
 router.delete('/:id', protect, async (req, res, next) => {
   try {
-    const room = await prisma.room.findUnique({ where: { id: req.params.id } });
+    const room = await prisma.room.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+
     await prisma.room.delete({ where: { id: req.params.id } });
     await log('Deleted', `Deleted room ${room.roomNumber}`, req.admin.id);
     res.json({ success: true, message: 'Room deleted' });

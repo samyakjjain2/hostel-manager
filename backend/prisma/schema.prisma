@@ -11,23 +11,47 @@ datasource db {
 }
 
 model Admin {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  avatar       String?
-  phone        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  name                  String
+  email                 String   @unique
+  passwordHash          String
+  avatar                String?
+  phone                 String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  notices      Notice[]
-  activityLogs ActivityLog[]
+  // Custom Settings
+  hostelName            String   @default("प्रतिभा चयन छात्रावास")
+  hostelAddress         String   @default("141-पिपल्या राव, इन्दौर, (म. प्र.) 452014 IN.")
+  hostelPhone           String   @default("9424480369")
+  signatoryName         String   @default("Qaim")
+  enableDualAccounts    Boolean  @default(false)
+  account1Name          String   @default("Account 1")
+  account2Name          String   @default("Account 2")
+  account1Prefix        String   @default("PC")
+  account2Prefix        String   @default("RJ&A")
+  account1DefaultAmount Float    @default(3000)
+  account2DefaultAmount Float    @default(4500)
+  defaultMonthlyAmount  Float    @default(7500)
+
+  // Relations
+  notices               Notice[]
+  activityLogs          ActivityLog[]
+  hostels               Hostel[]
+  rooms                 Room[]
+  students              Student[]
+  roomAllocations       RoomAllocation[]
+  fees                  Fee[]
+  complaints            Complaint[]
+  visitors              Visitor[]
+  staff                 Staff[]
 
   @@map("admins")
 }
 
 model Hostel {
   id          String   @id @default(cuid())
+  adminId     String
   name        String
   type        String   // Boys, Girls, Mixed
   address     String?
@@ -42,6 +66,7 @@ model Hostel {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  admin       Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
   rooms       Room[]
 
   @@map("hostels")
@@ -49,6 +74,7 @@ model Hostel {
 
 model Room {
   id             String   @id @default(cuid())
+  adminId        String
   hostelId       String
   roomNumber     String
   floor          Int      @default(1)
@@ -62,6 +88,7 @@ model Room {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  admin          Admin           @relation(fields: [adminId], references: [id], onDelete: Cascade)
   hostel         Hostel          @relation(fields: [hostelId], references: [id], onDelete: Cascade)
   allocations    RoomAllocation[]
   students       Student[]
@@ -72,16 +99,17 @@ model Room {
 
 model Student {
   id               String   @id @default(cuid())
+  adminId          String
   name             String
   photo            String?
-  email            String   @unique
+  email            String
   phone            String
   dateOfBirth      DateTime?
   gender           String   @default("Male") // Male, Female, Other
   college          String?
   course           String?
   year             String?
-  enrollmentNumber String?  @unique
+  enrollmentNumber String?
   address          String?
   city             String?
   state            String?
@@ -98,6 +126,7 @@ model Student {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  admin            Admin           @relation(fields: [adminId], references: [id], onDelete: Cascade)
   room             Room?           @relation(fields: [roomId], references: [id], onDelete: SetNull)
   allocations      RoomAllocation[]
   fees             Fee[]
@@ -109,6 +138,7 @@ model Student {
 
 model RoomAllocation {
   id          String    @id @default(cuid())
+  adminId     String
   studentId   String
   roomId      String
   bedNo       Int
@@ -118,6 +148,7 @@ model RoomAllocation {
   notes       String?
   createdAt   DateTime  @default(now())
 
+  admin       Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
   student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
@@ -126,6 +157,7 @@ model RoomAllocation {
 
 model Fee {
   id            String    @id @default(cuid())
+  adminId       String
   studentId     String
   type          String    @default("Monthly") // Monthly, Security, Mess, Fine, Other
   month         Int?      // 1-12
@@ -148,6 +180,7 @@ model Fee {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  admin         Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
   student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("fees")
@@ -155,6 +188,7 @@ model Fee {
 
 model Complaint {
   id          String    @id @default(cuid())
+  adminId     String
   studentId   String
   title       String
   description String
@@ -167,6 +201,7 @@ model Complaint {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  admin       Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
   student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("complaints")
@@ -174,6 +209,7 @@ model Complaint {
 
 model Visitor {
   id          String    @id @default(cuid())
+  adminId     String
   studentId   String
   name        String
   phone       String
@@ -186,6 +222,7 @@ model Visitor {
   notes       String?
   createdAt   DateTime  @default(now())
 
+  admin       Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
   student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("visitors")
@@ -193,8 +230,9 @@ model Visitor {
 
 model Staff {
   id           String    @id @default(cuid())
+  adminId      String
   name         String
-  email        String?   @unique
+  email        String?
   phone        String
   designation  String    // Warden, Security, Housekeeper, Electrician, Plumber, Cook, Other
   department   String?
@@ -205,6 +243,8 @@ model Staff {
   status       String    @default("Active") // Active, Inactive, OnLeave
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  admin        Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
   @@map("staff")
 }

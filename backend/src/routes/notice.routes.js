@@ -12,7 +12,7 @@ const log = async (action, detail, userId) => {
 router.get('/', protect, async (req, res, next) => {
   try {
     const { category, pinned } = req.query;
-    const where = {};
+    const where = { createdBy: req.admin.id };
 
     if (category) where.category = category;
     if (pinned) where.pinned = pinned === 'true';
@@ -49,6 +49,9 @@ router.post('/', protect, async (req, res, next) => {
 // PUT /api/notices/:id
 router.put('/:id', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.notice.findFirst({ where: { id: req.params.id, createdBy: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Notice not found' });
+
     const notice = await prisma.notice.update({
       where: { id: req.params.id },
       data: req.body
@@ -61,6 +64,9 @@ router.put('/:id', protect, async (req, res, next) => {
 // PATCH /api/notices/:id/pin
 router.patch('/:id/pin', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.notice.findFirst({ where: { id: req.params.id, createdBy: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Notice not found' });
+
     const { pinned } = req.body;
     const notice = await prisma.notice.update({
       where: { id: req.params.id },
@@ -73,6 +79,9 @@ router.patch('/:id/pin', protect, async (req, res, next) => {
 // DELETE /api/notices/:id
 router.delete('/:id', protect, async (req, res, next) => {
   try {
+    const exists = await prisma.notice.findFirst({ where: { id: req.params.id, createdBy: req.admin.id } });
+    if (!exists) return res.status(404).json({ success: false, message: 'Notice not found' });
+
     await prisma.notice.delete({ where: { id: req.params.id } });
     await log('Deleted', `Notice announcement deleted ID ${req.params.id}`, req.admin.id);
     res.json({ success: true, message: 'Notice deleted successfully' });

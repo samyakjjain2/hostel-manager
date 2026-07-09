@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_URL } from '../../context/AuthContext';
+import { API_URL, useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -8,10 +8,25 @@ import { CreditCard, Search, Plus, Settings, CheckCircle2, Printer } from 'lucid
 import toast from 'react-hot-toast';
 
 export const FeesList = () => {
+  const { user } = useAuth();
+
+  // --- Dynamic settings from admin profile ---
+  const isDual = user?.enableDualAccounts ?? false;
+  const acc1Name = user?.account1Name || 'Account 1';
+  const acc2Name = user?.account2Name || 'Account 2';
+  const acc1Prefix = user?.account1Prefix || 'PC';
+  const acc2Prefix = user?.account2Prefix || 'RJ&A';
+  const acc1Default = user?.account1DefaultAmount ?? 3000;
+  const acc2Default = user?.account2DefaultAmount ?? 4500;
+  const hostelName = user?.hostelName || 'Hostel';
+  const hostelAddress = user?.hostelAddress || '';
+  const hostelPhone = user?.hostelPhone || '';
+  const signatoryName = user?.signatoryName || 'Authorized';
+
   const [fees, setFees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
-  const [activeAccount, setActiveAccount] = useState(1); // 1 = Account 1 (₹3,000), 2 = Account 2 (₹4,500)
+  const [activeAccount, setActiveAccount] = useState(1);
 
   // Search & Filters
   const [search, setSearch] = useState('');
@@ -29,7 +44,7 @@ export const FeesList = () => {
 
   // Form states
   const [genData, setGenData] = useState({ month: new Date().getMonth() + 1, year: new Date().getFullYear(), dueDate: '' });
-  const [addData, setAddData] = useState({ studentId: '', type: 'Monthly', amountAccount1: 3000, amountAccount2: 4500, month: new Date().getMonth() + 1, year: new Date().getFullYear(), dueDate: '' });
+  const [addData, setAddData] = useState({ studentId: '', type: 'Monthly', amountAccount1: acc1Default, amountAccount2: acc2Default, month: new Date().getMonth() + 1, year: new Date().getFullYear(), dueDate: '' });
   const [payData, setPayData] = useState({ paidAmount: 0, paymentMode: 'UPI', transactionId: '', notes: '' });
 
   const [customInvoiceDate, setCustomInvoiceDate] = useState('');
@@ -168,8 +183,8 @@ export const FeesList = () => {
     setAddData({
       studentId: students[0]?.id || '',
       type: 'Monthly',
-      amountAccount1: 3000,
-      amountAccount2: 4500,
+      amountAccount1: acc1Default,
+      amountAccount2: acc2Default,
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
       dueDate: ''
@@ -193,7 +208,10 @@ export const FeesList = () => {
             <CreditCard className="text-blue-600" size={22} /> Finance Ledger
           </h1>
           <p className="text-slate-500 dark:text-zinc-400 text-xs mt-1">
-            Independent account ledger sheets: Account 1 (₹3,000 bill) and Account 2 (₹4,500 bill).
+            {isDual
+              ? `Split billing: ${acc1Name} (₹${acc1Default.toLocaleString('en-IN')}) + ${acc2Name} (₹${acc2Default.toLocaleString('en-IN')})`
+              : `Single account billing — Monthly fee: ₹${(user?.defaultMonthlyAmount ?? 7500).toLocaleString('en-IN')}`
+            }
           </p>
         </div>
 
@@ -201,9 +219,11 @@ export const FeesList = () => {
           <Button variant="gradient" className="gap-1.5 cursor-pointer text-xs" onClick={() => setGenModal(true)}>
             <Settings size={14} /> Auto-Generate Bills
           </Button>
-          <Button variant="outline" className="gap-1.5 cursor-pointer text-xs" onClick={openAdd}>
-            <Plus size={14} /> Add Split Fee
-          </Button>
+          {isDual && (
+            <Button variant="outline" className="gap-1.5 cursor-pointer text-xs" onClick={openAdd}>
+              <Plus size={14} /> Add Split Fee
+            </Button>
+          )}
         </div>
       </div>
 
@@ -217,8 +237,9 @@ export const FeesList = () => {
               : 'border-transparent text-slate-450 hover:text-slate-700'
           }`}
         >
-          Account 1 Ledger (₹3,000 Bills)
+          {isDual ? `${acc1Name} Ledger (₹${acc1Default.toLocaleString('en-IN')})` : 'Fee Ledger'}
         </button>
+        {isDual && (
         <button
           onClick={() => { setActiveAccount(2); setPage(1); }}
           className={`px-6 py-3 text-xs font-bold border-b-2 cursor-pointer transition-colors ${
@@ -227,8 +248,9 @@ export const FeesList = () => {
               : 'border-transparent text-slate-450 hover:text-slate-700'
           }`}
         >
-          Account 2 Ledger (₹4,500 Bills)
+          {acc2Name} Ledger (₹{acc2Default.toLocaleString('en-IN')})
         </button>
+        )}
       </div>
 
       {/* Filter Options */}
@@ -359,7 +381,10 @@ export const FeesList = () => {
       }>
         <form id="generate-form" onSubmit={handleGenInvoices} className="space-y-4 text-xs font-semibold">
           <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
-            This will scan the database for all active students allocated to rooms and generate independent billing sheets: Account 1 (₹3,000 bill) and Account 2 (₹4,500 bill) totaling ₹7,500.
+            {isDual
+              ? `This will generate split billing for all active residents: ${acc1Name} (₹${acc1Default.toLocaleString('en-IN')}) + ${acc2Name} (₹${acc2Default.toLocaleString('en-IN')}) = ₹${(acc1Default + acc2Default).toLocaleString('en-IN')} total.`
+              : `This will generate a single monthly fee of ₹${(user?.defaultMonthlyAmount ?? 7500).toLocaleString('en-IN')} for all active residents.`
+            }
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -383,7 +408,7 @@ export const FeesList = () => {
       </Modal>
 
       {/* Record Payment Modal */}
-      <Modal isOpen={payModal} onClose={() => setPayModal(false)} title={`Record Account ${activeAccount} Payment`} footer={
+      <Modal isOpen={payModal} onClose={() => setPayModal(false)} title={`Record ${isDual ? (activeAccount === 1 ? acc1Name : acc2Name) : 'Fee'} Payment`} footer={
         <>
           <Button variant="secondary" onClick={() => setPayModal(false)}>Cancel</Button>
           <Button variant="gradient" type="submit" form="pay-form">Save Payment</Button>
@@ -398,7 +423,7 @@ export const FeesList = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold uppercase text-[10px]">Account Sheet:</span>
-                <span className="text-blue-600 font-bold">Account {activeAccount} Ledger</span>
+                <span className="text-blue-600 font-bold">{isDual ? (activeAccount === 1 ? acc1Name : acc2Name) : 'Fee'} Ledger</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold uppercase text-[10px]">Bill Rate:</span>
@@ -572,17 +597,16 @@ export const FeesList = () => {
             {/* Top Layout */}
             <div className="flex justify-between items-start mb-6">
               <div className="space-y-1">
-                <h2 className="text-base font-black tracking-tight" style={{ fontSize: '18px', fontWeight: '900', color: '#000000' }}>प्रतिभा चयन छात्रावास</h2>
-                <div className="text-[10px] font-bold text-slate-700 leading-normal">
-                  141-पिपल्या राव,<br />
-                  इन्दौर, (म. प्र.) 452014 IN.<br />
-                  Tel: 9424480369
+                <h2 className="text-base font-black tracking-tight" style={{ fontSize: '18px', fontWeight: '900', color: '#000000' }}>{hostelName}</h2>
+                <div className="text-[10px] font-bold text-slate-700 leading-normal" style={{ whiteSpace: 'pre-line' }}>
+                  {hostelAddress && <>{hostelAddress}<br /></>}
+                  {hostelPhone && <>Tel: {hostelPhone}</>}
                 </div>
               </div>
               <div className="text-right space-y-4">
                 <div className="text-xl font-black tracking-wider text-black">RECEIPT</div>
                 <div className="text-[11px] font-bold text-slate-800 space-y-1">
-                  <div>invoice No : <span className="font-mono">{activeAccount === 1 ? 'PC' : 'RJ&A'}-{printFee.id.slice(-4).toUpperCase()}</span></div>
+                  <div>invoice No : <span className="font-mono">{(activeAccount === 1 ? acc1Prefix : acc2Prefix)}-{printFee.id.slice(-4).toUpperCase()}</span></div>
                   <div>
                     invoice Date : <span>
                       {isEditingDate ? (
@@ -659,8 +683,8 @@ export const FeesList = () => {
 
                 <div className="pt-4 pr-2">
                   <div className="text-right">
-                    <span className="font-serif italic text-blue-700 text-lg font-bold block" style={{ fontFamily: 'Georgia, serif', transform: 'rotate(-2deg)' }}>Qaim</span>
-                    <div className="text-[10px] font-black text-slate-800 mt-1 uppercase">For प्रतिभा चयन छात्रावास.</div>
+                    <span className="font-serif italic text-blue-700 text-lg font-bold block" style={{ fontFamily: 'Georgia, serif', transform: 'rotate(-2deg)' }}>{signatoryName}</span>
+                    <div className="text-[10px] font-black text-slate-800 mt-1 uppercase">For {hostelName}.</div>
                     <div className="text-[9px] font-bold text-slate-500 tracking-wider">Signature.</div>
                   </div>
                 </div>

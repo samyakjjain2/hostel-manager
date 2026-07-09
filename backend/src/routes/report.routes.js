@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 router.get('/occupancy', protect, async (req, res, next) => {
   try {
     const report = await prisma.room.findMany({
+      where: { adminId: req.admin.id },
       include: {
         hostel: { select: { name: true } },
         students: { select: { name: true, enrollmentNumber: true } }
@@ -22,6 +23,7 @@ router.get('/occupancy', protect, async (req, res, next) => {
 router.get('/fees', protect, async (req, res, next) => {
   try {
     const report = await prisma.fee.findMany({
+      where: { adminId: req.admin.id },
       include: {
         student: { select: { name: true, enrollmentNumber: true, phone: true } }
       },
@@ -35,6 +37,7 @@ router.get('/fees', protect, async (req, res, next) => {
 router.get('/complaints', protect, async (req, res, next) => {
   try {
     const report = await prisma.complaint.findMany({
+      where: { adminId: req.admin.id },
       include: {
         student: { select: { name: true, enrollmentNumber: true } }
       },
@@ -48,6 +51,7 @@ router.get('/complaints', protect, async (req, res, next) => {
 router.get('/visitors', protect, async (req, res, next) => {
   try {
     const report = await prisma.visitor.findMany({
+      where: { adminId: req.admin.id },
       include: {
         student: { select: { name: true, enrollmentNumber: true } }
       },
