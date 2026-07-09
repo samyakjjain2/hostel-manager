@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_URL } from '../../context/AuthContext';
+import { API_URL, useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Badge } from '../../components/ui/Badge';
@@ -8,6 +8,15 @@ import { DoorClosed, Plus, Users, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const RoomsList = () => {
+  const { user } = useAuth();
+  
+  // Calculate default rent based on admin settings
+  const defaultRent = user
+    ? (user.enableDualAccounts 
+        ? (user.account1DefaultAmount || 0) + (user.account2DefaultAmount || 0)
+        : (user.defaultMonthlyAmount ?? 7500))
+    : 7500;
+
   const [rooms, setRooms] = useState([]);
   const [hostels, setHostels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,9 +32,14 @@ export const RoomsList = () => {
     hostelId: '',
     floor: 0,
     type: 'Double Sharing',
-    monthlyRent: 7500,
+    monthlyRent: defaultRent,
     capacity: 2
   });
+
+  // Sync default rent when user is loaded
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, monthlyRent: defaultRent }));
+  }, [user, defaultRent]);
 
   useEffect(() => {
     fetchHostels();
@@ -72,14 +86,14 @@ export const RoomsList = () => {
         ...formData,
         floor: parseInt(formData.floor) || 0,
         capacity: parseInt(formData.capacity) || 1,
-        monthlyRent: 7500 // Rent is strictly fixed at 7500
+        monthlyRent: parseFloat(formData.monthlyRent) || defaultRent
       };
 
       const res = await axios.post(`${API_URL}/rooms`, payload);
       if (res.data.success) {
         toast.success('Room added successfully');
         setAddModal(false);
-        setFormData({ ...formData, roomNumber: '' });
+        setFormData({ ...formData, roomNumber: '', monthlyRent: defaultRent });
         fetchRooms();
       }
     } catch (err) {
@@ -296,13 +310,14 @@ export const RoomsList = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-400 dark:text-zinc-550">Monthly Rent (Fixed) *</label>
+              <label className="font-semibold text-slate-705 dark:text-zinc-400">Monthly Rent (₹) *</label>
               <input
-                type="text"
-                readOnly
-                value="₹ 7,500"
-                className="w-full rounded-lg border border-slate-200 bg-slate-100/50 py-2.5 px-3 text-slate-500 outline-none font-bold select-none cursor-not-allowed"
-                title="Rent is fixed at ₹7,500 for all rooms"
+                type="number"
+                required
+                min="0"
+                value={formData.monthlyRent}
+                onChange={(e) => setFormData({ ...formData, monthlyRent: parseFloat(e.target.value) || 0 })}
+                className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-2.5 px-3 text-slate-805 dark:text-white outline-none font-bold"
               />
             </div>
           </div>
