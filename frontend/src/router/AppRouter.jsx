@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { Login } from '../pages/auth/Login';
+import { Register } from '../pages/auth/Register';
 import { Dashboard } from '../pages/dashboard/Dashboard';
 import { HostelsList } from '../pages/hostels/HostelsList';
 import { RoomsList } from '../pages/rooms/RoomsList';
@@ -24,6 +25,7 @@ export const AppRouter = () => {
       <Routes>
         {/* Auth page */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Protected Dashboard operations under Master Layout */}
         <Route path="/" element={<Layout />}>

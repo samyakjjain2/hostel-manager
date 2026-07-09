@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
@@ -113,6 +113,12 @@ export const Login = () => {
           >
             Load Demo Credentials
           </button>
+          <p className="text-xs text-slate-500 dark:text-zinc-400">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+              Create New Account
+            </Link>
+          </p>
         </div>
       </div>
     </div>
