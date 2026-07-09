@@ -226,6 +226,20 @@ export const FeesList = () => {
     }
   };
 
+  const handleDeleteFee = async (id) => {
+    if (!window.confirm('Are you sure you want to DELETE this fee record? This action cannot be undone.')) return;
+    try {
+      const res = await axios.delete(`${API_URL}/fees/${id}`);
+      if (res.data.success) {
+        toast.success('Fee record deleted successfully');
+        fetchFees();
+        fetchStats();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete fee record');
+    }
+  };
+
   const openPay = (fee) => {
     setSelectedFee(fee);
     const balance = activeAccount === 1 
@@ -466,8 +480,9 @@ export const FeesList = () => {
                   const paidAmt = activeAccount === 1 ? fee.paidAccount1 : fee.paidAccount2;
                   const balance = Math.max(0, billAmt - paidAmt);
                   
-                  // Calculate independent account billing status
-                  const isPaid = paidAmt >= billAmt;
+                  // Bug fix: 0 >= 0 was returning true (unpaid ₹0 bills showing as Settled)
+                  // Now requires billAmt > 0 to be considered Paid
+                  const isPaid = billAmt > 0 && paidAmt >= billAmt;
                   const isPartial = paidAmt > 0 && paidAmt < billAmt;
                   const statusLabel = isPaid ? 'Paid' : isPartial ? 'Partial' : 'Pending';
 
@@ -489,7 +504,7 @@ export const FeesList = () => {
                         }>{statusLabel}</Badge>
                       </td>
                       <td className="p-4 text-right">
-                        <div className="flex justify-end items-center gap-2">
+                        <div className="flex justify-end items-center gap-2 flex-wrap">
                           {!isPaid ? (
                             <Button variant="outline" className="text-[10px] px-2.5 py-1.5 cursor-pointer font-bold gap-1" onClick={() => openPay(fee)}>
                               <CreditCard size={12} /> Pay Due
@@ -505,6 +520,11 @@ export const FeesList = () => {
                           {paidAmt > 0 && (
                             <Button variant="danger" className="text-[10px] px-2.5 py-1.5 cursor-pointer font-bold gap-1 border border-transparent" onClick={() => handleCancelPayment(fee.id)}>
                               Cancel Receipt
+                            </Button>
+                          )}
+                          {!isPaid && (
+                            <Button variant="danger" className="text-[10px] px-2.5 py-1.5 cursor-pointer font-bold gap-1 border border-transparent" onClick={() => handleDeleteFee(fee.id)}>
+                              Delete
                             </Button>
                           )}
                         </div>
