@@ -88,7 +88,7 @@ export const Dashboard = () => {
       icon: DoorClosed, 
       iconBg: 'bg-emerald-50 dark:bg-emerald-950/20', 
       iconColor: 'text-emerald-600 dark:text-emerald-400',
-      path: '/rooms'
+      path: '/allocation'
     },
     { 
       title: 'Vacant Beds', 
@@ -97,7 +97,7 @@ export const Dashboard = () => {
       isUp: false, 
       icon: Bed, 
       iconBg: 'bg-slate-50 dark:bg-slate-800/40', 
-      iconColor: 'text-slate-500 dark:text-slate-400',
+      iconColor: 'text-slate-505 dark:text-slate-400',
       path: '/rooms'
     },
     { 
@@ -108,8 +108,7 @@ export const Dashboard = () => {
       icon: FileText, 
       iconBg: 'bg-orange-50 dark:bg-orange-950/20', 
       iconColor: 'text-orange-600 dark:text-orange-400',
-      path: '/fees',
-      state: { filterStatus: 'Pending' }
+      path: `/fees?status=Pending&month=${new Date().getMonth() + 1}&year=${new Date().getFullYear()}`
     },
     { 
       title: 'Complaints Log', 
@@ -119,7 +118,7 @@ export const Dashboard = () => {
       icon: AlertTriangle, 
       iconBg: 'bg-rose-50 dark:bg-rose-950/20', 
       iconColor: 'text-rose-600 dark:text-rose-400',
-      path: '/complaints'
+      path: '/complaints?status=Pending'
     },
     { 
       title: 'Today\'s Visitors', 
@@ -187,8 +186,8 @@ export const Dashboard = () => {
         {statCards.map((card, i) => (
           <div 
             key={i} 
-            onClick={() => navigate(card.path, { state: card.state })}
-            className="premium-card p-6 !rounded-2xl flex flex-col justify-between h-36 hover:shadow-md transition cursor-pointer select-none active:scale-[0.98]"
+            onClick={() => navigate(card.path)}
+            className="premium-card p-6 !rounded-2xl flex flex-col justify-between h-36 hover:shadow-md cursor-pointer select-none hover:scale-[1.02] duration-150 transition-all flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">

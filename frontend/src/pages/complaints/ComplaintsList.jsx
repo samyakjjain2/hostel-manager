@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { AlertOctagon, Search, Plus, User, Info, MessageSquare, Wrench } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export const ComplaintsList = () => {
@@ -13,9 +14,15 @@ export const ComplaintsList = () => {
   const [addModal, setAddModal] = useState(false);
   const [students, setStudents] = useState([]);
 
+  const [searchParams] = useSearchParams();
+
   // Filters & Search
   const [search, setSearch] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState(searchParams.get('status') || '');
+
+  useEffect(() => {
+    setSelectedStatus(searchParams.get('status') || '');
+  }, [searchParams]);
 
   // Add form state
   const [formData, setFormData] = useState({
