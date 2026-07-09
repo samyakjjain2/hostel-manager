@@ -36,6 +36,7 @@ export const FeesList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState('');
 
   // Modals
   const [genModal, setGenModal] = useState(false);
@@ -78,7 +79,7 @@ export const FeesList = () => {
 
   useEffect(() => {
     fetchFees();
-  }, [page, selectedStatus, selectedMonth, selectedYear, activeAccount]);
+  }, [page, selectedStatus, selectedMonth, selectedYear, selectedPaymentMode, activeAccount]);
 
   const fetchDropdowns = async () => {
     try {
@@ -108,7 +109,8 @@ export const FeesList = () => {
           page,
           limit: 10,
           month: selectedMonth || undefined,
-          year: selectedYear || undefined
+          year: selectedYear || undefined,
+          paymentMode: selectedPaymentMode || undefined
         }
       });
       if (res.data.success) {
@@ -277,7 +279,12 @@ export const FeesList = () => {
       {/* Payment Summary Cards breakdown */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Card */}
-        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-blue-500">
+        <div 
+          onClick={() => { setSelectedPaymentMode(''); setPage(1); }}
+          className={`premium-card p-4 flex items-center justify-between border-l-4 border-blue-500 cursor-pointer select-none transition-all duration-200 hover:scale-[1.02] ${
+            selectedPaymentMode === '' ? 'ring-2 ring-blue-500 shadow-md scale-[1.02]' : 'hover:shadow-sm'
+          }`}
+        >
           <div>
             <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Total Collected</p>
             <h3 className="text-lg font-black text-slate-800 dark:text-white mt-1">₹{statsData.totalCollected.toLocaleString('en-IN')}</h3>
@@ -286,7 +293,12 @@ export const FeesList = () => {
         </div>
 
         {/* UPI Card */}
-        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-emerald-500">
+        <div 
+          onClick={() => { setSelectedPaymentMode(selectedPaymentMode === 'UPI' ? '' : 'UPI'); setPage(1); }}
+          className={`premium-card p-4 flex items-center justify-between border-l-4 border-emerald-500 cursor-pointer select-none transition-all duration-200 hover:scale-[1.02] ${
+            selectedPaymentMode === 'UPI' ? 'ring-2 ring-blue-500 shadow-md scale-[1.02]' : 'hover:shadow-sm'
+          }`}
+        >
           <div>
             <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">UPI / QR Code</p>
             <h3 className="text-lg font-black text-emerald-600 dark:text-emerald-450 mt-1">₹{statsData.breakdown.UPI.toLocaleString('en-IN')}</h3>
@@ -295,7 +307,12 @@ export const FeesList = () => {
         </div>
 
         {/* Cash Card */}
-        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-amber-500">
+        <div 
+          onClick={() => { setSelectedPaymentMode(selectedPaymentMode === 'Cash' ? '' : 'Cash'); setPage(1); }}
+          className={`premium-card p-4 flex items-center justify-between border-l-4 border-amber-500 cursor-pointer select-none transition-all duration-200 hover:scale-[1.02] ${
+            selectedPaymentMode === 'Cash' ? 'ring-2 ring-blue-500 shadow-md scale-[1.02]' : 'hover:shadow-sm'
+          }`}
+        >
           <div>
             <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Cash Payments</p>
             <h3 className="text-lg font-black text-amber-600 dark:text-amber-450 mt-1">₹{statsData.breakdown.Cash.toLocaleString('en-IN')}</h3>
@@ -304,16 +321,26 @@ export const FeesList = () => {
         </div>
 
         {/* Cards (Debit/Credit) */}
-        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-indigo-500">
+        <div 
+          onClick={() => { setSelectedPaymentMode(selectedPaymentMode === 'Debit Card,Credit Card' ? '' : 'Debit Card,Credit Card'); setPage(1); }}
+          className={`premium-card p-4 flex items-center justify-between border-l-4 border-indigo-500 cursor-pointer select-none transition-all duration-200 hover:scale-[1.02] ${
+            selectedPaymentMode === 'Debit Card,Credit Card' ? 'ring-2 ring-blue-500 shadow-md scale-[1.02]' : 'hover:shadow-sm'
+          }`}
+        >
           <div>
             <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Card Payments</p>
-            <h3 className="text-lg font-black text-indigo-650 dark:text-indigo-400 mt-1">₹{(statsData.breakdown["Debit Card"] + statsData.breakdown["Credit Card"]).toLocaleString('en-IN')}</h3>
+            <h3 className="text-lg font-black text-indigo-655 dark:text-indigo-400 mt-1">₹{(statsData.breakdown["Debit Card"] + statsData.breakdown["Credit Card"]).toLocaleString('en-IN')}</h3>
           </div>
           <div className="h-10 w-10 rounded-lg bg-indigo-50 dark:bg-indigo-905/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-[10px]">CARD</div>
         </div>
 
         {/* Bank / Others */}
-        <div className="premium-card p-4 flex items-center justify-between border-l-4 border-slate-400">
+        <div 
+          onClick={() => { setSelectedPaymentMode(selectedPaymentMode === 'Bank Transfer,Cheque,Other' ? '' : 'Bank Transfer,Cheque,Other'); setPage(1); }}
+          className={`premium-card p-4 flex items-center justify-between border-l-4 border-slate-400 cursor-pointer select-none transition-all duration-200 hover:scale-[1.02] ${
+            selectedPaymentMode === 'Bank Transfer,Cheque,Other' ? 'ring-2 ring-blue-500 shadow-md scale-[1.02]' : 'hover:shadow-sm'
+          }`}
+        >
           <div>
             <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">Bank / Cheque / Other</p>
             <h3 className="text-lg font-black text-slate-700 dark:text-zinc-300 mt-1">₹{(statsData.breakdown["Bank Transfer"] + statsData.breakdown.Cheque + statsData.breakdown.Other).toLocaleString('en-IN')}</h3>
