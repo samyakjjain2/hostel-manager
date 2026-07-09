@@ -189,6 +189,20 @@ export const FeesList = () => {
     }
   };
 
+  const handleCancelPayment = async (id) => {
+    if (!window.confirm('Are you sure you want to cancel this receipt? This will reset all payments on this bill back to 0.')) return;
+    try {
+      const res = await axios.put(`${API_URL}/fees/${id}/cancel-payment`);
+      if (res.data.success) {
+        toast.success('Receipt cancelled and billing reset to Pending');
+        fetchFees();
+        fetchStats();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel receipt');
+    }
+  };
+
   const openPay = (fee) => {
     setSelectedFee(fee);
     const balance = activeAccount === 1 
@@ -421,6 +435,11 @@ export const FeesList = () => {
                           <Button variant="secondary" className="text-[10px] px-2.5 py-1.5 cursor-pointer font-bold gap-1 border border-slate-200" onClick={() => setPrintFee(fee)}>
                             <Printer size={12} /> Receipt
                           </Button>
+                          {paidAmt > 0 && (
+                            <Button variant="danger" className="text-[10px] px-2.5 py-1.5 cursor-pointer font-bold gap-1 border border-transparent" onClick={() => handleCancelPayment(fee.id)}>
+                              Cancel Receipt
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>

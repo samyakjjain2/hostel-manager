@@ -276,6 +276,31 @@ router.put('/:id/pay', protect, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// PUT /api/fees/:id/cancel-payment
+router.put('/:id/cancel-payment', protect, async (req, res, next) => {
+  try {
+    const fee = await prisma.fee.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
+    if (!fee) return res.status(404).json({ success: false, message: 'Fee record not found' });
+
+    const updated = await prisma.fee.update({
+      where: { id: req.params.id },
+      data: {
+        paidAccount1: 0,
+        paidAccount2: 0,
+        paidAmount: 0,
+        paymentMode: null,
+        transactionId: null,
+        receiptNumber: null,
+        status: 'Pending',
+        paidAt: null
+      }
+    });
+
+    await log('Cancelled', `Receipt cancelled for fee record ID ${fee.id}`, req.admin.id);
+    res.json({ success: true, fee: updated, message: 'Receipt cancelled and payment reset successfully' });
+  } catch (err) { next(err); }
+});
+
 // DELETE /api/fees/:id
 router.delete('/:id', protect, async (req, res, next) => {
   try {
