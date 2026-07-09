@@ -160,7 +160,7 @@ router.post('/generate', protect, async (req, res, next) => {
           month: +month,
           year: +year,
           amount: isDual ? (amount1 + amount2) : singleAmount,
-          amountAccount1: isDual ? amount1 : 0,
+          amountAccount1: isDual ? amount1 : singleAmount,
           amountAccount2: isDual ? amount2 : 0,
           paidAccount1: 0,
           paidAccount2: 0,
@@ -199,7 +199,13 @@ router.post('/', protect, async (req, res, next) => {
       finalAmt2 = amountAccount2 !== undefined ? +amountAccount2 : (adminSettings?.account2DefaultAmount ?? 4500);
       finalAmount = finalAmt1 + finalAmt2;
     } else {
-      finalAmount = inputAmount !== undefined ? +inputAmount : (adminSettings?.defaultMonthlyAmount ?? 7500);
+      // Single account: read from amountAccount1 OR amount field (whichever is sent)
+      finalAmount = amountAccount1 !== undefined ? +amountAccount1
+                  : inputAmount !== undefined ? +inputAmount
+                  : (adminSettings?.defaultMonthlyAmount ?? 7500);
+      // Store in amountAccount1 so the fee table can display it correctly
+      finalAmt1 = finalAmount;
+      finalAmt2 = 0;
     }
 
     const fee = await prisma.fee.create({
@@ -245,6 +251,8 @@ router.put('/:id/pay', protect, async (req, res, next) => {
       newPaidAmount = newPaidAccount1 + newPaidAccount2;
     } else {
       newPaidAmount += (+inputPaidAmount || 0);
+      // Also update paidAccount1 so the fee table (which reads paidAccount1) shows correctly
+      newPaidAccount1 = newPaidAmount;
     }
 
     const totalAmount = fee.amount + (+fine || 0) - (+discount || 0);
