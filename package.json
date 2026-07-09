@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "postinstall": "npm install --prefix backend && npm install --include=dev --prefix frontend",
-    "build": "npm run build --prefix frontend && cp -r frontend/dist backend/public && cd backend && npm run prisma:generate && npm run prisma:deploy",
+    "postinstall": "npm install --ignore-scripts --prefix backend && npm install --include=dev --prefix frontend",
+    "build": "npm run build --prefix frontend && echo '✅ Frontend built' && cp -r frontend/dist backend/public && echo '✅ Copied to backend/public' && ls backend/public && cd backend && npm run prisma:generate && echo '✅ Prisma generated' && npm run prisma:deploy && echo '✅ DB pushed'",
     "start": "node backend/server.js"
   }
 }
