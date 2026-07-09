@@ -264,7 +264,15 @@ export const RoomsList = () => {
               <label className="font-semibold text-slate-707 dark:text-zinc-400">Room Category *</label>
               <select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  let cap = 2;
+                  if (val === 'Single Room') cap = 1;
+                  else if (val === 'Double Sharing') cap = 2;
+                  else if (val === 'Triple Sharing') cap = 3;
+                  else if (val === 'Four Sharing') cap = 4;
+                  setFormData(prev => ({ ...prev, type: val, capacity: cap }));
+                }}
                 className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-2.5 px-3 text-slate-850 dark:text-white outline-none font-semibold"
               >
                 <option value="Single Room">Single Room</option>
