@@ -7,6 +7,12 @@ const log = async (action, detail, userId) => {
   try { await prisma.activityLog.create({ data: { module: 'Fees', action, detail, userId } }); } catch {}
 };
 
+const parseInteger = (val) => {
+  if (val === undefined || val === null || val === '') return null;
+  const parsed = parseInt(val, 10);
+  return isNaN(parsed) ? null : parsed;
+};
+
 const parseDate = (val) => {
   if (!val || val === '') return null;
   const d = new Date(val);
@@ -21,8 +27,11 @@ router.get('/', protect, async (req, res, next) => {
     
     if (status) where.status = status;        // BUG1 FIX: was missing
     if (studentId) where.studentId = studentId;
-    if (month) where.month = +month;
-    if (year) where.year = +year;
+    
+    const parsedMonth = parseInteger(month);
+    const parsedYear = parseInteger(year);
+    if (parsedMonth !== null) where.month = parsedMonth;
+    if (parsedYear !== null) where.year = parsedYear;
     
     if (paymentMode) {
       if (paymentMode.includes(',')) {
@@ -128,8 +137,10 @@ router.get('/:id', protect, async (req, res, next) => {
 router.post('/generate', protect, async (req, res, next) => {
   try {
     const { month, year, dueDate } = req.body;
-    if (!month || !year) {
-      return res.status(400).json({ success: false, message: 'Month and Year are required' });
+    const parsedMonth = parseInteger(month);
+    const parsedYear = parseInteger(year);
+    if (!parsedMonth || !parsedYear) {
+      return res.status(400).json({ success: false, message: 'Valid Month and Year are required' });
     }
 
     // Get admin settings to load default amounts
@@ -152,8 +163,8 @@ router.post('/generate', protect, async (req, res, next) => {
         where: {
           studentId: student.id,
           type: 'Monthly',
-          month: +month,
-          year: +year,
+          month: parsedMonth,
+          year: parsedYear,
           adminId: req.admin.id
         }
       });
@@ -163,8 +174,8 @@ router.post('/generate', protect, async (req, res, next) => {
           studentId: student.id,
           adminId: req.admin.id,
           type: 'Monthly',
-          month: +month,
-          year: +year,
+          month: parsedMonth,
+          year: parsedYear,
           amount: isDual ? (amount1 + amount2) : singleAmount,
           amountAccount1: isDual ? amount1 : singleAmount,
           amountAccount2: isDual ? amount2 : 0,
@@ -180,7 +191,7 @@ router.post('/generate', protect, async (req, res, next) => {
 
     if (records.length > 0) {
       await prisma.fee.createMany({ data: records });
-      await log('Generated', `Generated monthly bills for ${count} students for month ${month}/${year}`, req.admin.id);
+      await log('Generated', `Generated monthly bills for ${count} students for month ${parsedMonth}/${parsedYear}`, req.admin.id);
     }
 
     res.json({ success: true, count, message: `Successfully generated ${count} fee records.` });
@@ -219,8 +230,8 @@ router.post('/', protect, async (req, res, next) => {
         studentId,
         adminId: req.admin.id,
         type,
-        month: +month || null,
-        year: +year || null,
+        month: parseInteger(month),
+        year: parseInteger(year),
         amount: finalAmount,
         amountAccount1: finalAmt1,
         amountAccount2: finalAmt2,

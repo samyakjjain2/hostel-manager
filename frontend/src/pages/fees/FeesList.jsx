@@ -180,12 +180,18 @@ export const FeesList = () => {
 
   const handlePayFee = async (e) => {
     e.preventDefault();
+    const amountToPay = parseFloat(payData.paidAmount) || 0;
+    if (amountToPay <= 0) {
+      toast.error('Payment amount must be greater than 0');
+      return;
+    }
+
     try {
       const payload = {
-        paidAccount1: activeAccount === 1 ? parseFloat(payData.paidAmount) || 0 : 0,
-        paidAccount2: activeAccount === 2 ? parseFloat(payData.paidAmount) || 0 : 0,
+        paidAccount1: activeAccount === 1 ? amountToPay : 0,
+        paidAccount2: activeAccount === 2 ? amountToPay : 0,
         // Also send paidAmount for single-account mode backend
-        paidAmount: parseFloat(payData.paidAmount) || 0,
+        paidAmount: amountToPay,
         discount: 0,
         fine: 0,
         paymentMode: payData.paymentMode,
