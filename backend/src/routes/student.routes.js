@@ -70,10 +70,11 @@ router.get('/:id', protect, async (req, res, next) => {
 router.post('/', protect, async (req, res, next) => {
   try {
     const { email, enrollmentNumber } = req.body;
+    const normalizedEmail = email ? email.trim().toLowerCase() : undefined;
     
     // Check unique email and enrollment within this admin's scope
-    if (email) {
-      const existingEmail = await prisma.student.findFirst({ where: { email, adminId: req.admin.id } });
+    if (normalizedEmail) {
+      const existingEmail = await prisma.student.findFirst({ where: { email: normalizedEmail, adminId: req.admin.id } });
       if (existingEmail) return res.status(400).json({ success: false, message: 'Email already registered' });
     }
     if (enrollmentNumber) {
@@ -82,17 +83,23 @@ router.post('/', protect, async (req, res, next) => {
     }
 
     const { 
-      name, email, phone, dateOfBirth, gender, college, course, year,
-      enrollmentNumber, address, city, state, parentName, parentPhone, parentEmail,
+      name, phone, dateOfBirth, gender, college, course, year,
+      address, city, state, parentName, parentPhone, parentEmail,
       emergencyContact, admissionDate, status, notes
     } = req.body;
+
+    const parseDate = (val) => {
+      if (!val || val === '') return null;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    };
 
     const student = await prisma.student.create({ 
       data: { 
         name,
-        email,
+        email: normalizedEmail,
         phone,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+        dateOfBirth: parseDate(dateOfBirth),
         gender: gender || 'Male',
         college,
         course,
@@ -103,9 +110,9 @@ router.post('/', protect, async (req, res, next) => {
         state,
         parentName,
         parentPhone,
-        parentEmail,
+        parentEmail: parentEmail ? parentEmail.trim().toLowerCase() : null,
         emergencyContact,
-        admissionDate: admissionDate ? new Date(admissionDate) : new Date(),
+        admissionDate: parseDate(admissionDate) || new Date(),
         status: status || 'Active',
         notes,
         adminId: req.admin.id 
@@ -123,10 +130,11 @@ router.put('/:id', protect, async (req, res, next) => {
     if (!exists) return res.status(404).json({ success: false, message: 'Student not found' });
 
     const { email, enrollmentNumber } = req.body;
+    const normalizedEmail = email ? email.trim().toLowerCase() : undefined;
     
     // Check unique validations (except current student) within this admin's scope
-    if (email) {
-      const existingEmail = await prisma.student.findFirst({ where: { email, adminId: req.admin.id, NOT: { id: req.params.id } } });
+    if (normalizedEmail) {
+      const existingEmail = await prisma.student.findFirst({ where: { email: normalizedEmail, adminId: req.admin.id, NOT: { id: req.params.id } } });
       if (existingEmail) return res.status(400).json({ success: false, message: 'Email already in use' });
     }
     if (enrollmentNumber) {
@@ -135,27 +143,33 @@ router.put('/:id', protect, async (req, res, next) => {
     }
 
     const {
-      name, email, phone, enrollmentNumber, course, gender, dateOfBirth,
+      name, phone, course, gender, dateOfBirth,
       parentName, parentPhone, address, photo, bloodGroup, aadharNumber,
       admissionDate, status, notes
     } = req.body;
 
+    const parseDate = (val) => {
+      if (!val || val === '') return null;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
     // BUG FIX: whitelist permitted fields — never allow adminId/roomId/hostelId via API
     const updateData = {};
     if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email;
+    if (normalizedEmail !== undefined) updateData.email = normalizedEmail;
     if (phone !== undefined) updateData.phone = phone;
     if (enrollmentNumber !== undefined) updateData.enrollmentNumber = enrollmentNumber;
     if (course !== undefined) updateData.course = course;
     if (gender !== undefined) updateData.gender = gender;
-    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = parseDate(dateOfBirth);
     if (parentName !== undefined) updateData.parentName = parentName;
     if (parentPhone !== undefined) updateData.parentPhone = parentPhone;
     if (address !== undefined) updateData.address = address;
     if (photo !== undefined) updateData.photo = photo;
     if (bloodGroup !== undefined) updateData.bloodGroup = bloodGroup;
     if (aadharNumber !== undefined) updateData.aadharNumber = aadharNumber;
-    if (admissionDate !== undefined) updateData.admissionDate = admissionDate ? new Date(admissionDate) : null;
+    if (admissionDate !== undefined) updateData.admissionDate = parseDate(admissionDate);
     if (status !== undefined) updateData.status = status;
     if (notes !== undefined) updateData.notes = notes;
 

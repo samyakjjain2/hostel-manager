@@ -4,13 +4,13 @@ import axios from 'axios';
 import { API_URL } from '../../context/AuthContext';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { Search, Home, User, Bed, ArrowRight, CornerDownRight } from 'lucide-react';
+import { Search, Home, User, Bed, ArrowRight, CornerDownRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const UniversalSearch = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const [results, setResults] = useState({ students: [], rooms: [] });
+  const [results, setResults] = useState({ students: [], rooms: [], staff: [], complaints: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export const UniversalSearch = () => {
           {/* Students Results */}
           <div className="premium-card space-y-4">
             <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800 pb-2 flex items-center gap-1.5">
-              <User size={15} className="text-blue-605" /> Match Resident Students ({results.students?.length || 0})
+              <User size={15} className="text-blue-655" /> Match Resident Students ({results.students?.length || 0})
             </h3>
             
             {results.students?.length > 0 ? (
@@ -93,13 +93,12 @@ export const UniversalSearch = () => {
           {/* Rooms Results */}
           <div className="premium-card space-y-4">
             <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800 pb-2 flex items-center gap-1.5">
-              <Home size={15} className="text-blue-605" /> Match Hostel Rooms ({results.rooms?.length || 0})
+              <Home size={15} className="text-blue-655" /> Match Hostel Rooms ({results.rooms?.length || 0})
             </h3>
 
             {results.rooms?.length > 0 ? (
               <div className="space-y-3.5">
                 {results.rooms.map((room) => {
-                  const activeCount = room.allocations?.filter(a => a.status === 'Active').length || 0;
                   return (
                     <div key={room.id} className="p-3 rounded-lg border border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/40 flex items-center justify-between">
                       <div>
@@ -117,6 +116,60 @@ export const UniversalSearch = () => {
               </div>
             ) : (
               <p className="text-slate-400 italic py-4">No matching rooms found.</p>
+            )}
+          </div>
+
+          {/* Staff Results */}
+          <div className="premium-card space-y-4">
+            <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800 pb-2 flex items-center gap-1.5">
+              <ShieldCheck size={15} className="text-blue-655" /> Match Staff Directory ({results.staff?.length || 0})
+            </h3>
+            
+            {results.staff?.length > 0 ? (
+              <div className="space-y-3.5">
+                {results.staff.map((s) => (
+                  <div key={s.id} className="p-3 rounded-lg border border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/40 flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-800 dark:text-white font-bold block">{s.name}</span>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">{s.designation} &middot; {s.phone}</span>
+                    </div>
+                    <Link to="/staff">
+                      <Button variant="outline" className="text-[10px] px-2.5 py-1.5 cursor-pointer font-bold gap-1">
+                        View Directory <ArrowRight size={12} />
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-400 italic py-4">No matching staff members found.</p>
+            )}
+          </div>
+
+          {/* Complaints Results */}
+          <div className="premium-card space-y-4">
+            <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800 pb-2 flex items-center gap-1.5">
+              <AlertCircle size={15} className="text-blue-655" /> Match Support Tickets ({results.complaints?.length || 0})
+            </h3>
+            
+            {results.complaints?.length > 0 ? (
+              <div className="space-y-3.5">
+                {results.complaints.map((c) => (
+                  <div key={c.id} className="p-3 rounded-lg border border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/40 flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-800 dark:text-white font-bold block">{c.title}</span>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">By: {c.student?.name} &middot; Priority: {c.priority}</span>
+                    </div>
+                    <Link to="/complaints">
+                      <Button variant="outline" className="text-[10px] px-2.5 py-1.5 cursor-pointer font-bold gap-1">
+                        Resolve Ticket <ArrowRight size={12} />
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-400 italic py-4">No matching support tickets found.</p>
             )}
           </div>
         </div>

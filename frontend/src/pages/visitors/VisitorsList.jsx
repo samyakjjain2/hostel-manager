@@ -191,9 +191,14 @@ export const VisitorsList = () => {
       <Modal isOpen={addModal} onClose={() => setAddModal(false)} title="Log Visitor Check-In" footer={
         <>
           <Button variant="secondary" onClick={() => setAddModal(false)}>Cancel</Button>
-          <Button variant="gradient" type="submit" form="visitor-form">Log Check-In</Button>
+          <Button variant="gradient" type="submit" form="visitor-form" disabled={students.length === 0}>Log Check-In</Button>
         </>
       }>
+        {students.length === 0 && (
+          <div className="p-3.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/50 text-xs text-rose-600 dark:text-rose-400 font-semibold mb-4">
+            Please register a Student profile first under the 'Students' tab before logging visitor entry check-ins.
+          </div>
+        )}
         <form id="visitor-form" onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">

@@ -214,9 +214,14 @@ export const ComplaintsList = () => {
       <Modal isOpen={addModal} onClose={() => setAddModal(false)} title="File Support Ticket" footer={
         <>
           <Button variant="secondary" onClick={() => setAddModal(false)}>Cancel</Button>
-          <Button variant="gradient" type="submit" form="complaint-form">File Complaint</Button>
+          <Button variant="gradient" type="submit" form="complaint-form" disabled={students.length === 0}>File Complaint</Button>
         </>
       }>
+        {students.length === 0 && (
+          <div className="p-3.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/50 text-xs text-rose-600 dark:text-rose-400 font-semibold mb-4">
+            Please register a Student profile first under the 'Students' tab before filing support tickets.
+          </div>
+        )}
         <form id="complaint-form" onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">

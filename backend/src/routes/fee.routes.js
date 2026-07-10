@@ -7,6 +7,12 @@ const log = async (action, detail, userId) => {
   try { await prisma.activityLog.create({ data: { module: 'Fees', action, detail, userId } }); } catch {}
 };
 
+const parseDate = (val) => {
+  if (!val || val === '') return null;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 // GET /api/fees
 router.get('/', protect, async (req, res, next) => {
   try {
@@ -165,7 +171,7 @@ router.post('/generate', protect, async (req, res, next) => {
           paidAccount1: 0,
           paidAccount2: 0,
           paidAmount: 0,
-          dueDate: dueDate ? new Date(dueDate) : null,
+          dueDate: parseDate(dueDate),
           status: 'Pending'
         });
         count++;
@@ -221,7 +227,7 @@ router.post('/', protect, async (req, res, next) => {
         paidAccount1: 0,
         paidAccount2: 0,
         paidAmount: 0,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        dueDate: parseDate(dueDate),
         status: 'Pending'
       }
     });

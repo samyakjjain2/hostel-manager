@@ -5,9 +5,9 @@ const { protect } = require('../middleware/auth');
 
 const parseSalary = (val) => {
   if (val === undefined) return undefined;
-  if (val === null || val === '') return null;
+  if (val === null || val === '') return 0;
   const parsed = parseFloat(val);
-  return isNaN(parsed) ? undefined : parsed;
+  return isNaN(parsed) ? 0 : parsed;
 };
 
 const log = async (action, detail, userId) => {

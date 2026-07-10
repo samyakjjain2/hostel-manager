@@ -15,12 +15,13 @@ router.post('/register', async (req, res, next) => {
     if (!name || !email || !password) return res.status(400).json({ success: false, message: 'Name, email and password are required' });
     if (password.length < 6) return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
 
-    const existing = await prisma.admin.findUnique({ where: { email } });
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await prisma.admin.findUnique({ where: { email: normalizedEmail } });
     if (existing) return res.status(409).json({ success: false, message: 'An account with this email already exists' });
 
     const passwordHash = await bcrypt.hash(password, 12);
     const admin = await prisma.admin.create({
-      data: { name, email, passwordHash, phone: phone || null }
+      data: { name, email: normalizedEmail, passwordHash, phone: phone || null }
     });
     delete admin.passwordHash;
     const token = signToken(admin.id, admin.email, admin.name);
@@ -34,7 +35,8 @@ router.post('/login', async (req, res, next) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password required' });
 
-    const admin = await prisma.admin.findUnique({ where: { email } });
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await prisma.admin.findUnique({ where: { email: normalizedEmail } });
     if (!admin) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
     const valid = await bcrypt.compare(password, admin.passwordHash);
