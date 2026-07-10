@@ -941,13 +941,13 @@ export const FeesList = () => {
               <div style={{ width: '1.5px', backgroundColor: '#000', margin: '0 16px' }} />
 
               {/* Right: Signature */}
-              <div style={{ textAlign: 'right', minWidth: '160px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+              <div style={{ textAlign: 'right', minWidth: '160px' }}>
                 {signPhoto ? (
-                  <div style={{ height: '36px', width: '120px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '2px' }}>
-                    <img src={signPhoto} alt="signature" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                  <div style={{ display: 'block', height: '48px', width: '120px', marginLeft: 'auto', marginBottom: '4px' }}>
+                    <img src={signPhoto} alt="signature" style={{ display: 'block', height: '100%', width: '100%', objectFit: 'contain' }} />
                   </div>
                 ) : (
-                  <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '22px', fontWeight: '700', color: '#1a3a8f', transform: 'rotate(-3deg)', display: 'inline-block', marginBottom: '2px' }}>
+                  <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '22px', fontWeight: '700', color: '#1a3a8f', transform: 'rotate(-3deg)', display: 'inline-block', marginBottom: '6px' }}>
                     {signatoryName}
                   </div>
                 )}

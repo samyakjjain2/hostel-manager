@@ -115,14 +115,26 @@ export const Profile = () => {
         ctx.drawImage(img, 0, 0, width, height);
 
         const compressedBase64 = canvas.toDataURL('image/png', 0.7);
+        let finalSignPhoto = compressedBase64;
         const base64SizeInBytes = Math.round((compressedBase64.length * 3) / 4);
         if (base64SizeInBytes > 50 * 1024) {
-          const extraCompressed = canvas.toDataURL('image/jpeg', 0.5);
-          setSettings(prev => ({ ...prev, signPhoto: extraCompressed }));
-        } else {
-          setSettings(prev => ({ ...prev, signPhoto: compressedBase64 }));
+          finalSignPhoto = canvas.toDataURL('image/jpeg', 0.5);
         }
-        toast.success('Signature photo uploaded & auto-compressed');
+
+        // Auto-save signature photo immediately
+        updateProfile({ ...settings, signPhoto: finalSignPhoto })
+          .then(res => {
+            if (res.success) {
+              setSettings(prev => ({ ...prev, signPhoto: finalSignPhoto }));
+              toast.success('Signature photo uploaded & saved successfully');
+            }
+          })
+          .catch(() => {
+            toast.error('Failed to save signature photo');
+          });
+      };
+      img.onerror = () => {
+        toast.error('Failed to load image file');
       };
       img.src = event.target.result;
     };
@@ -293,7 +305,18 @@ export const Profile = () => {
                       <img src={settings.signPhoto} alt="signature preview" className="max-h-full max-w-full object-contain" />
                       <button
                         type="button"
-                        onClick={() => setSettings({ ...settings, signPhoto: '' })}
+                        onClick={() => {
+                          updateProfile({ ...settings, signPhoto: '' })
+                            .then(res => {
+                              if (res.success) {
+                                setSettings(prev => ({ ...prev, signPhoto: '' }));
+                                toast.success('Signature photo removed successfully');
+                              }
+                            })
+                            .catch(() => {
+                              toast.error('Failed to remove signature photo');
+                            });
+                        }}
                         className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white rounded-full hover:bg-rose-600 shadow-sm cursor-pointer"
                         style={{ fontSize: '10px', width: '15px', height: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
                       >
