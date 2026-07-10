@@ -26,7 +26,8 @@ export const StaffList = () => {
 
   useEffect(() => {
     fetchStaff();
-  }, []);
+  // BUG FIX: added search to deps
+  }, [search]);
 
   const fetchStaff = async () => {
     setLoading(true);

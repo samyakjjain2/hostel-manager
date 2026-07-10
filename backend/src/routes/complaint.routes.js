@@ -38,10 +38,21 @@ router.get('/', protect, async (req, res, next) => {
 // POST /api/complaints
 router.post('/', protect, async (req, res, next) => {
   try {
-    const student = await prisma.student.findFirst({ where: { id: req.body.studentId, adminId: req.admin.id } });
+    const { studentId, title, description, category, priority, status } = req.body;
+    const student = await prisma.student.findFirst({ where: { id: studentId, adminId: req.admin.id } });
     if (!student) return res.status(400).json({ success: false, message: 'Invalid Student ID' });
 
-    const complaint = await prisma.complaint.create({ data: { ...req.body, adminId: req.admin.id } });
+    const complaint = await prisma.complaint.create({ 
+      data: { 
+        studentId,
+        title,
+        description,
+        category: category || 'General',
+        priority: priority || 'Medium',
+        status: status || 'Pending',
+        adminId: req.admin.id 
+      } 
+    });
     await log('Created', `Registered complaint: "${complaint.title}"`, req.admin.id);
     res.status(201).json({ success: true, complaint });
   } catch (err) { next(err); }

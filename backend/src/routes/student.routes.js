@@ -81,7 +81,36 @@ router.post('/', protect, async (req, res, next) => {
       if (existingEnroll) return res.status(400).json({ success: false, message: 'Enrollment number already exists' });
     }
 
-    const student = await prisma.student.create({ data: { ...req.body, adminId: req.admin.id } });
+    const { 
+      name, email, phone, dateOfBirth, gender, college, course, year,
+      enrollmentNumber, address, city, state, parentName, parentPhone, parentEmail,
+      emergencyContact, admissionDate, status, notes
+    } = req.body;
+
+    const student = await prisma.student.create({ 
+      data: { 
+        name,
+        email,
+        phone,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+        gender: gender || 'Male',
+        college,
+        course,
+        year,
+        enrollmentNumber,
+        address,
+        city,
+        state,
+        parentName,
+        parentPhone,
+        parentEmail,
+        emergencyContact,
+        admissionDate: admissionDate ? new Date(admissionDate) : new Date(),
+        status: status || 'Active',
+        notes,
+        adminId: req.admin.id 
+      } 
+    });
     await log('Created', `Added student: ${student.name}`, req.admin.id);
     res.status(201).json({ success: true, student });
   } catch (err) { next(err); }

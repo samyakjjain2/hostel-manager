@@ -43,11 +43,13 @@ export const ComplaintsList = () => {
 
   useEffect(() => {
     fetchComplaints();
-  }, [selectedStatus]);
+  // BUG FIX: added `search` to deps so typing triggers re-fetch
+  }, [search, selectedStatus]);
 
   const fetchDropdowns = async () => {
     try {
-      const res = await axios.get(`${API_URL}/students`, { params: { limit: 100 } });
+      // BUG FIX: increased limit from 100 to 500
+      const res = await axios.get(`${API_URL}/students`, { params: { limit: 500 } });
       if (res.data.success) {
         setStudents(res.data.students);
         if (res.data.students.length > 0 && !formData.studentId) {
@@ -143,7 +145,7 @@ export const ComplaintsList = () => {
         >
           <option value="">All Statuses</option>
           <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
+          <option value="InProgress">In Progress</option>
           <option value="Resolved">Resolved</option>
         </select>
 
@@ -168,7 +170,9 @@ export const ComplaintsList = () => {
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Badge variant={c.priority === 'High' ? 'danger' : 'primary'}>{c.priority}</Badge>
-                    <Badge variant={c.status === 'Resolved' ? 'success' : 'warning'}>{c.status}</Badge>
+                    <Badge variant={c.status === 'Resolved' ? 'success' : 'warning'}>
+                      {c.status === 'InProgress' ? 'In Progress' : c.status}
+                    </Badge>
                   </div>
                 </div>
 

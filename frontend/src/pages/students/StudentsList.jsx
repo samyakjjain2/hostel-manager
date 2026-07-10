@@ -32,7 +32,8 @@ export const StudentsList = () => {
 
   useEffect(() => {
     fetchStudents();
-  }, [page, selectedStatus]);
+  // BUG FIX: added `search` to deps so search box triggers re-fetch
+  }, [page, search, selectedStatus]);
 
   const fetchStudents = async () => {
     setLoading(true);

@@ -95,6 +95,11 @@ export const Profile = () => {
       toast.error('New passwords do not match');
       return;
     }
+    // BUG FIX: added minimum length validation
+    if (pwData.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
     setSavingPw(true);
     try {
       const res = await axios.put(`${API_URL}/auth/change-password`, {

@@ -3,10 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, User, Phone, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import axios from 'axios';
-import { API_URL } from '../../context/AuthContext';
+import { API_URL, useAuth } from '../../context/AuthContext';
 
 export const Register = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,6 +29,8 @@ export const Register = () => {
     }
     setLoading(true);
     try {
+      // BUG FIX: register then immediately login via AuthContext so user state is set
+      // without needing window.location.reload()
       const res = await axios.post(`${API_URL}/auth/register`, {
         name: form.name,
         email: form.email,
@@ -35,10 +38,12 @@ export const Register = () => {
         password: form.password,
       });
       if (res.data.success) {
+        // Store token and set axios header
         localStorage.setItem('aegis_token', res.data.token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        // Now login via context to properly set user state (no reload needed)
+        await login(form.email, form.password);
         navigate('/');
-        window.location.reload(); // trigger AuthContext to re-fetch profile
       } else {
         setError(res.data.message || 'Registration failed.');
       }
@@ -48,6 +53,7 @@ export const Register = () => {
       setLoading(false);
     }
   };
+
 
   const passwordStrength = () => {
     if (!form.password) return null;

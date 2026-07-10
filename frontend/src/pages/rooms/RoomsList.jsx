@@ -228,10 +228,15 @@ export const RoomsList = () => {
         footer={
           <>
             <Button variant="secondary" onClick={() => setAddModal(false)}>Cancel</Button>
-            <Button variant="gradient" type="submit" form="room-form">Create Room</Button>
+            <Button variant="gradient" type="submit" form="room-form" disabled={hostels.length === 0}>Create Room</Button>
           </>
         }
       >
+        {hostels.length === 0 && (
+          <div className="p-3.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/50 text-xs text-rose-600 dark:text-rose-400 font-semibold mb-4">
+            Please register a Hostel Branch branch first under the 'Hostels' tab before setting up rooms.
+          </div>
+        )}
         <form id="room-form" onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">

@@ -32,7 +32,23 @@ router.get('/:id', protect, async (req, res, next) => {
 
 router.post('/', protect, async (req, res, next) => {
   try {
-    const hostel = await prisma.hostel.create({ data: { ...req.body, adminId: req.admin.id } });
+    const { name, type, address, floors, totalRooms, capacity, warden, contact, description, rules, status } = req.body;
+    const hostel = await prisma.hostel.create({ 
+      data: { 
+        name,
+        type,
+        address,
+        floors: parseInt(floors) || 1,
+        totalRooms: parseInt(totalRooms) || 0,
+        capacity: parseInt(capacity) || 0,
+        warden,
+        contact,
+        description,
+        rules,
+        status: status || 'Active',
+        adminId: req.admin.id 
+      } 
+    });
     await logActivity('Hostels', 'Created', `Added hostel: ${hostel.name}`, req.admin.id);
     res.status(201).json({ success: true, hostel });
   } catch (err) { next(err); }
@@ -43,7 +59,21 @@ router.put('/:id', protect, async (req, res, next) => {
     const exists = await prisma.hostel.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
     if (!exists) return res.status(404).json({ success: false, message: 'Hostel not found' });
 
-    const hostel = await prisma.hostel.update({ where: { id: req.params.id }, data: req.body });
+    const { name, type, address, floors, totalRooms, capacity, warden, contact, description, rules, status } = req.body;
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (type !== undefined) updateData.type = type;
+    if (address !== undefined) updateData.address = address;
+    if (floors !== undefined) updateData.floors = parseInt(floors) || 0;
+    if (totalRooms !== undefined) updateData.totalRooms = parseInt(totalRooms) || 0;
+    if (capacity !== undefined) updateData.capacity = parseInt(capacity) || 0;
+    if (warden !== undefined) updateData.warden = warden;
+    if (contact !== undefined) updateData.contact = contact;
+    if (description !== undefined) updateData.description = description;
+    if (rules !== undefined) updateData.rules = rules;
+    if (status !== undefined) updateData.status = status;
+
+    const hostel = await prisma.hostel.update({ where: { id: req.params.id }, data: updateData });
     await logActivity('Hostels', 'Updated', `Updated hostel: ${hostel.name}`, req.admin.id);
     res.json({ success: true, hostel });
   } catch (err) { next(err); }

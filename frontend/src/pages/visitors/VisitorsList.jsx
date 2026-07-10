@@ -28,11 +28,13 @@ export const VisitorsList = () => {
   useEffect(() => {
     fetchDropdowns();
     fetchVisitors();
-  }, []);
+  // BUG FIX: added search to deps
+  }, [search]);
 
   const fetchDropdowns = async () => {
     try {
-      const res = await axios.get(`${API_URL}/students`, { params: { limit: 100 } });
+      // BUG FIX: increased limit from 100 to 500
+      const res = await axios.get(`${API_URL}/students`, { params: { limit: 500 } });
       if (res.data.success) {
         setStudents(res.data.students);
         if (res.data.students.length > 0 && !formData.studentId) {
@@ -41,7 +43,6 @@ export const VisitorsList = () => {
       }
     } catch {}
   };
-
   const fetchVisitors = async () => {
     setLoading(true);
     try {

@@ -32,7 +32,22 @@ router.get('/:id', protect, async (req, res, next) => {
 
 router.post('/', protect, async (req, res, next) => {
   try {
-    const room = await prisma.room.create({ data: { ...req.body, adminId: req.admin.id } });
+    const { hostelId, roomNumber, floor, type, capacity, ac, attachedBath, monthlyRent, status } = req.body;
+    const room = await prisma.room.create({ 
+      data: { 
+        hostelId,
+        roomNumber,
+        floor: parseInt(floor) || 1,
+        type,
+        capacity: parseInt(capacity) || 1,
+        occupiedBeds: 0,
+        ac: !!ac,
+        attachedBath: !!attachedBath,
+        monthlyRent: parseFloat(monthlyRent) || 0,
+        status: status || 'Available',
+        adminId: req.admin.id 
+      } 
+    });
     await log('Created', `Added room ${room.roomNumber}`, req.admin.id);
     res.status(201).json({ success: true, room });
   } catch (err) { next(err); }
@@ -43,7 +58,19 @@ router.put('/:id', protect, async (req, res, next) => {
     const exists = await prisma.room.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
     if (!exists) return res.status(404).json({ success: false, message: 'Room not found' });
 
-    const room = await prisma.room.update({ where: { id: req.params.id }, data: req.body });
+    const { hostelId, roomNumber, floor, type, capacity, ac, attachedBath, monthlyRent, status } = req.body;
+    const updateData = {};
+    if (hostelId !== undefined) updateData.hostelId = hostelId;
+    if (roomNumber !== undefined) updateData.roomNumber = roomNumber;
+    if (floor !== undefined) updateData.floor = parseInt(floor) || 0;
+    if (type !== undefined) updateData.type = type;
+    if (capacity !== undefined) updateData.capacity = parseInt(capacity) || 1;
+    if (ac !== undefined) updateData.ac = !!ac;
+    if (attachedBath !== undefined) updateData.attachedBath = !!attachedBath;
+    if (monthlyRent !== undefined) updateData.monthlyRent = parseFloat(monthlyRent) || 0;
+    if (status !== undefined) updateData.status = status;
+
+    const room = await prisma.room.update({ where: { id: req.params.id }, data: updateData });
     await log('Updated', `Updated room ${room.roomNumber}`, req.admin.id);
     res.json({ success: true, room });
   } catch (err) { next(err); }

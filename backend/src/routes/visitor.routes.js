@@ -38,12 +38,19 @@ router.get('/', protect, async (req, res, next) => {
 // POST /api/visitors OR /api/visitors/checkin
 const createVisitor = async (req, res, next) => {
   try {
-    const student = await prisma.student.findFirst({ where: { id: req.body.studentId, adminId: req.admin.id } });
+    const { studentId, name, phone, relation, purpose, idProof, notes } = req.body;
+    const student = await prisma.student.findFirst({ where: { id: studentId, adminId: req.admin.id } });
     if (!student) return res.status(400).json({ success: false, message: 'Invalid Student ID' });
 
     const visitor = await prisma.visitor.create({
       data: {
-        ...req.body,
+        studentId,
+        name,
+        phone,
+        relation: relation || 'Other',
+        purpose,
+        idProof,
+        notes,
         checkIn: new Date(),
         status: 'CheckedIn',
         adminId: req.admin.id

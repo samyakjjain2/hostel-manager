@@ -62,7 +62,8 @@ export const RoomAllocation = () => {
 
   const fetchStudents = async () => {
     try {
-      const res = await axios.get(`${API_URL}/students`, { params: { limit: 100 } });
+      // BUG FIX: increased limit from 100 to 500
+      const res = await axios.get(`${API_URL}/students`, { params: { limit: 500 } });
       if (res.data.success) {
         const unallocated = res.data.students.filter(s => !s.room);
         setStudents(unallocated);
@@ -77,7 +78,8 @@ export const RoomAllocation = () => {
 
   const fetchRooms = async () => {
     try {
-      const res = await axios.get(`${API_URL}/rooms`);
+      // BUG FIX: Fetch all vacant rooms by passing limit: 500
+      const res = await axios.get(`${API_URL}/rooms`, { params: { limit: 500 } });
       if (res.data.success) {
         setRooms(res.data.rooms.filter(r => r.occupiedBeds < r.capacity));
         if (res.data.rooms.length > 0 && !formData.roomId) {
@@ -89,17 +91,28 @@ export const RoomAllocation = () => {
 
   const handleAllocate = async (e) => {
     e.preventDefault();
-    if (!formData.startDate) {
-      toast.error('Stay start date is required');
+    // BUG FIX: removed false startDate validation — backend uses new Date() automatically
+    if (!formData.studentId) {
+      toast.error('Please select a student');
+      return;
+    }
+    if (!formData.roomId) {
+      toast.error('Please select a room');
       return;
     }
 
     try {
-      const res = await axios.post(`${API_URL}/allocations`, formData);
+      const payload = {
+        studentId: formData.studentId,
+        roomId: formData.roomId,
+        bedNo: parseInt(formData.bedNumber) || 1
+      };
+      const res = await axios.post(`${API_URL}/allocations`, payload);
       if (res.data.success) {
         toast.success('Bed stay allocated successfully');
         fetchAllocations();
         fetchRooms();
+        fetchStudents(); // BUG FIX: refresh so allocated student disappears from dropdown
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to allocate bed stay');

@@ -25,7 +25,8 @@ export const NoticesList = () => {
 
   useEffect(() => {
     fetchNotices();
-  }, []);
+  // BUG FIX: added search to deps
+  }, [search]);
 
   const fetchNotices = async () => {
     setLoading(true);
