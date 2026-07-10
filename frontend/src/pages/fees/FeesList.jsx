@@ -783,15 +783,16 @@ export const FeesList = () => {
                 left: 0 !important;
                 top: 0 !important;
                 width: 100% !important;
-                border: 1px solid #000000 !important;
+                max-width: 100% !important;
+                border: none !important;
                 box-shadow: none !important;
-                padding: 24px !important;
+                padding: 0 !important;
                 margin: 0 !important;
                 color: #000000 !important;
                 background: #ffffff !important;
               }
-              /* Strip flex layout & constraints from all parent wrappers during print */
-              .fixed, .relative, div {
+              /* Strip layout & constraints from modal frames only during print */
+              .fixed, .relative, [role="dialog"], [role="document"] {
                 position: static !important;
                 display: block !important;
                 overflow: visible !important;
