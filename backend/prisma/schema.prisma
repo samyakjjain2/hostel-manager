@@ -21,18 +21,18 @@ model Admin {
   updatedAt             DateTime @updatedAt
 
   // Custom Settings
-  hostelName            String   @default("प्रतिभा चयन छात्रावास")
-  hostelAddress         String   @default("141-पिपल्या राव, इन्दौर, (म. प्र.) 452014 IN.")
-  hostelPhone           String   @default("9424480369")
-  signatoryName         String   @default("Qaim")
+  hostelName            String   @default("My Hostel")
+  hostelAddress         String   @default("")
+  hostelPhone           String   @default("")
+  signatoryName         String   @default("Administrator")
   enableDualAccounts    Boolean  @default(false)
   account1Name          String   @default("Account 1")
   account2Name          String   @default("Account 2")
-  account1Prefix        String   @default("PC")
-  account2Prefix        String   @default("RJ&A")
-  account1DefaultAmount Float    @default(3000)
-  account2DefaultAmount Float    @default(4500)
-  defaultMonthlyAmount  Float    @default(7500)
+  account1Prefix        String   @default("A1")
+  account2Prefix        String   @default("A2")
+  account1DefaultAmount Float    @default(0)
+  account2DefaultAmount Float    @default(0)
+  defaultMonthlyAmount  Float    @default(0)
 
   // Relations
   notices               Notice[]
