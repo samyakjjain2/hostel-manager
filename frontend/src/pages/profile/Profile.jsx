@@ -34,6 +34,7 @@ export const Profile = () => {
     account1DefaultAmount: user?.account1DefaultAmount ?? 3000,
     account2DefaultAmount: user?.account2DefaultAmount ?? 4500,
     defaultMonthlyAmount: user?.defaultMonthlyAmount ?? 7500,
+    signPhoto: user?.signPhoto || ''
   });
 
   // Keep local states in sync when user loads from AuthContext
@@ -53,6 +54,7 @@ export const Profile = () => {
         account1DefaultAmount: user.account1DefaultAmount ?? 3000,
         account2DefaultAmount: user.account2DefaultAmount ?? 4500,
         defaultMonthlyAmount: user.defaultMonthlyAmount ?? 7500,
+        signPhoto: user.signPhoto || ''
       });
     }
   }, [user]);
@@ -74,6 +76,57 @@ export const Profile = () => {
     } finally {
       setSavingProfile(false);
     }
+  };
+
+  const handleSignatureChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Original file is too large. Please select a smaller photo (under 2MB)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 250;
+        const MAX_HEIGHT = 100;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL('image/png', 0.7);
+        const base64SizeInBytes = Math.round((compressedBase64.length * 3) / 4);
+        if (base64SizeInBytes > 50 * 1024) {
+          const extraCompressed = canvas.toDataURL('image/jpeg', 0.5);
+          setSettings(prev => ({ ...prev, signPhoto: extraCompressed }));
+        } else {
+          setSettings(prev => ({ ...prev, signPhoto: compressedBase64 }));
+        }
+        toast.success('Signature photo uploaded & auto-compressed');
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSettingsSubmit = async (e) => {
@@ -225,11 +278,38 @@ export const Profile = () => {
                 onChange={e => setSettings({ ...settings, hostelAddress: e.target.value })}
                 className={`${inputCls} resize-none`} placeholder="Full address for invoice header" />
             </div>
-            <div>
-              <label className={labelCls}>Authorized Signatory Name</label>
-              <input type="text" value={settings.signatoryName}
-                onChange={e => setSettings({ ...settings, signatoryName: e.target.value })}
-                className={inputCls} placeholder="Name appearing at bottom of receipt" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:col-span-2">
+              <div>
+                <label className={labelCls}>Authorized Signatory Name</label>
+                <input type="text" value={settings.signatoryName}
+                  onChange={e => setSettings({ ...settings, signatoryName: e.target.value })}
+                  className={inputCls} placeholder="Name appearing at bottom of receipt" />
+              </div>
+              <div>
+                <label className={labelCls}>Upload Signature Photo (Max 50KB)</label>
+                <div className="flex items-center gap-3 mt-1.5">
+                  {settings.signPhoto ? (
+                    <div className="relative border border-slate-200 dark:border-zinc-800 rounded-lg p-1 bg-white dark:bg-zinc-950 flex items-center justify-center h-[38px] w-[120px]">
+                      <img src={settings.signPhoto} alt="signature preview" className="max-h-full max-w-full object-contain" />
+                      <button
+                        type="button"
+                        onClick={() => setSettings({ ...settings, signPhoto: '' })}
+                        className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white rounded-full hover:bg-rose-600 shadow-sm cursor-pointer"
+                        style={{ fontSize: '10px', width: '15px', height: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSignatureChange}
+                      className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 dark:file:bg-zinc-800 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 cursor-pointer"
+                    />
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 

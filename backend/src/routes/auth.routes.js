@@ -74,7 +74,8 @@ router.put('/profile', protect, async (req, res, next) => {
       account2Prefix,
       account1DefaultAmount,
       account2DefaultAmount,
-      defaultMonthlyAmount
+      defaultMonthlyAmount,
+      signPhoto
     } = req.body;
 
     const data = { name, phone };
@@ -90,6 +91,7 @@ router.put('/profile', protect, async (req, res, next) => {
     if (account1DefaultAmount !== undefined) data.account1DefaultAmount = parseFloat(account1DefaultAmount) || 0;
     if (account2DefaultAmount !== undefined) data.account2DefaultAmount = parseFloat(account2DefaultAmount) || 0;
     if (defaultMonthlyAmount !== undefined) data.defaultMonthlyAmount = parseFloat(defaultMonthlyAmount) || 0;
+    if (signPhoto !== undefined) data.signPhoto = signPhoto;
 
     const admin = await prisma.admin.update({
       where: { id: req.admin.id },
