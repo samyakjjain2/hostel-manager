@@ -63,6 +63,11 @@ router.put('/:id/checkout', protect, async (req, res, next) => {
     const exists = await prisma.visitor.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
     if (!exists) return res.status(404).json({ success: false, message: 'Visitor record not found' });
 
+    // BUG FIX: guard against double checkout
+    if (exists.status === 'CheckedOut') {
+      return res.status(400).json({ success: false, message: 'Visitor has already checked out' });
+    }
+
     const visitor = await prisma.visitor.update({
       where: { id: req.params.id },
       data: {

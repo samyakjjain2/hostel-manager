@@ -94,13 +94,15 @@ export const FeesList = () => {
     fetchStats();
   }, []);
 
+  // BUG FIX: added `search` to deps so typing in search actually triggers re-fetch
   useEffect(() => {
     fetchFees();
-  }, [page, selectedStatus, selectedMonth, selectedYear, selectedPaymentMode, activeAccount]);
+  }, [page, search, selectedStatus, selectedMonth, selectedYear, selectedPaymentMode, activeAccount]);
 
   const fetchDropdowns = async () => {
     try {
-      const res = await axios.get(`${API_URL}/students`, { params: { limit: 100 } });
+      // BUG FIX: increased limit from 100 to 500 so all students appear in dropdown
+      const res = await axios.get(`${API_URL}/students`, { params: { limit: 500 } });
       if (res.data.success) setStudents(res.data.students);
     } catch {}
   };
@@ -122,7 +124,8 @@ export const FeesList = () => {
     try {
       const res = await axios.get(`${API_URL}/fees`, {
         params: {
-          search,
+          search: search || undefined,
+          status: selectedStatus || undefined,   // BUG FIX: send status to API (server-side filter)
           page,
           limit: 10,
           month: selectedMonth || undefined,
@@ -131,19 +134,7 @@ export const FeesList = () => {
         }
       });
       if (res.data.success) {
-        let filteredFees = res.data.fees;
-        if (selectedStatus) {
-          filteredFees = filteredFees.filter(fee => {
-            if (activeAccount === 1) {
-              const status1 = fee.paidAccount1 >= fee.amountAccount1 ? 'Paid' : fee.paidAccount1 > 0 ? 'Partial' : 'Pending';
-              return status1 === selectedStatus;
-            } else {
-              const status2 = fee.paidAccount2 >= fee.amountAccount2 ? 'Paid' : fee.paidAccount2 > 0 ? 'Partial' : 'Pending';
-              return status2 === selectedStatus;
-            }
-          });
-        }
-        setFees(filteredFees);
+        setFees(res.data.fees);
         setTotalPages(res.data.pages);
       }
     } catch {
@@ -244,12 +235,13 @@ export const FeesList = () => {
 
   const openPay = (fee) => {
     setSelectedFee(fee);
+    // BUG FIX: use || 0 to prevent NaN when amountAccount1/paidAccount1 is null
     const balance = activeAccount === 1 
-      ? fee.amountAccount1 - fee.paidAccount1 
-      : fee.amountAccount2 - fee.paidAccount2;
+      ? (fee.amountAccount1 || 0) - (fee.paidAccount1 || 0) 
+      : (fee.amountAccount2 || 0) - (fee.paidAccount2 || 0);
       
     setPayData({
-      paidAmount: balance,
+      paidAmount: Math.max(0, balance),
       paymentMode: 'UPI',
       transactionId: '',
       notes: ''

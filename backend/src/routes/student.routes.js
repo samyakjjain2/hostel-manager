@@ -105,9 +105,34 @@ router.put('/:id', protect, async (req, res, next) => {
       if (existingEnroll) return res.status(400).json({ success: false, message: 'Enrollment number already in use' });
     }
 
+    const {
+      name, email, phone, enrollmentNumber, course, gender, dateOfBirth,
+      parentName, parentPhone, address, photo, bloodGroup, aadharNumber,
+      admissionDate, status, notes
+    } = req.body;
+
+    // BUG FIX: whitelist permitted fields — never allow adminId/roomId/hostelId via API
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (enrollmentNumber !== undefined) updateData.enrollmentNumber = enrollmentNumber;
+    if (course !== undefined) updateData.course = course;
+    if (gender !== undefined) updateData.gender = gender;
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (parentName !== undefined) updateData.parentName = parentName;
+    if (parentPhone !== undefined) updateData.parentPhone = parentPhone;
+    if (address !== undefined) updateData.address = address;
+    if (photo !== undefined) updateData.photo = photo;
+    if (bloodGroup !== undefined) updateData.bloodGroup = bloodGroup;
+    if (aadharNumber !== undefined) updateData.aadharNumber = aadharNumber;
+    if (admissionDate !== undefined) updateData.admissionDate = admissionDate ? new Date(admissionDate) : null;
+    if (status !== undefined) updateData.status = status;
+    if (notes !== undefined) updateData.notes = notes;
+
     const student = await prisma.student.update({
       where: { id: req.params.id },
-      data: req.body
+      data: updateData
     });
     await log('Updated', `Updated student: ${student.name}`, req.admin.id);
     res.json({ success: true, student });
@@ -120,15 +145,13 @@ router.delete('/:id', protect, async (req, res, next) => {
     const student = await prisma.student.findFirst({ where: { id: req.params.id, adminId: req.admin.id } });
     if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
     
-    // If student is currently occupying a room, decrement bed count
+    // If student is currently occupying a room, decrement bed count safely
     if (student.roomId) {
-      const roomExists = await prisma.room.findFirst({ where: { id: student.roomId, adminId: req.admin.id } });
-      if (roomExists) {
-        await prisma.room.update({
-          where: { id: student.roomId },
-          data: { occupiedBeds: { decrement: 1 } }
-        });
-      }
+      // BUG FIX: use updateMany with gt:0 guard to prevent negative bed count
+      await prisma.room.updateMany({
+        where: { id: student.roomId, adminId: req.admin.id, occupiedBeds: { gt: 0 } },
+        data: { occupiedBeds: { decrement: 1 } }
+      });
     }
 
     await prisma.student.delete({ where: { id: req.params.id } });

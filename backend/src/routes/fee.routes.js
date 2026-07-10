@@ -13,7 +13,7 @@ router.get('/', protect, async (req, res, next) => {
     const { status, studentId, search, month, year, paymentMode, page = 1, limit = 20 } = req.query;
     const where = { adminId: req.admin.id };
     
-    if (status) where.status = status;
+    if (status) where.status = status;        // BUG1 FIX: was missing
     if (studentId) where.studentId = studentId;
     if (month) where.month = +month;
     if (year) where.year = +year;

@@ -192,9 +192,9 @@ router.post('/checkout', protect, async (req, res, next) => {
         where: { studentId, roomId, status: 'Active', adminId: req.admin.id },
         data: { checkOut: new Date(), status: 'CheckedOut' }
       }),
-      // Update room occupied bed count
-      prisma.room.update({
-        where: { id: roomId },
+      // BUG FIX: use decrement only if > 0 to prevent negative bed count
+      prisma.room.updateMany({
+        where: { id: roomId, occupiedBeds: { gt: 0 } },
         data: { occupiedBeds: { decrement: 1 } }
       }),
       // Clear student's room assignment and change status
@@ -228,9 +228,9 @@ router.put('/:id/checkout', protect, async (req, res, next) => {
         where: { id: req.params.id },
         data: { checkOut: new Date(), status: 'CheckedOut' }
       }),
-      // Update room occupied bed count
-      prisma.room.update({
-        where: { id: roomId },
+      // BUG FIX: prevent negative occupiedBeds
+      prisma.room.updateMany({
+        where: { id: roomId, occupiedBeds: { gt: 0 } },
         data: { occupiedBeds: { decrement: 1 } }
       }),
       // Clear student's room assignment and change status

@@ -70,7 +70,13 @@ app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
     return next();
   }
-  res.sendFile(path.join(frontendDistPath, 'index.html'));
+  const indexPath = path.join(frontendDistPath, 'index.html');
+  // BUG FIX: guard against crash when dist hasn't been built yet
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ success: false, message: 'Frontend not built. Run npm run build in frontend.' });
+  }
 });
 
 // 404 handler
