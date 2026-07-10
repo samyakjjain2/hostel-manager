@@ -881,6 +881,16 @@ export const FeesList = () => {
                     {printFee.type === 'Monthly' 
                       ? `${getHindiMonthName(printFee.month)} ${printFee.year}` 
                       : (printFee.type === 'Caution Money' ? 'Caution Money / कॉशन मनी' : printFee.type)}
+                    {!isDual && (
+                      <span className="block text-[9px] text-slate-500 font-semibold mt-0.5">
+                        Account: {acc1Name}
+                      </span>
+                    )}
+                    {isDual && (
+                      <span className="block text-[9px] text-slate-500 font-semibold mt-0.5">
+                        Account: {activeAccount === 1 ? acc1Name : acc2Name}
+                      </span>
+                    )}
                   </td>
                   <td className="border border-black p-2 text-center">1</td>
                   <td className="border border-black p-2 text-right">₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</td>
@@ -909,6 +919,10 @@ export const FeesList = () => {
                   <div className="flex justify-between pt-1 text-slate-900" style={{ fontSize: '12px' }}>
                     <span>Amount Paid:</span>
                     <span>₹{(activeAccount === 1 ? printFee.paidAccount1 : printFee.paidAccount2)?.toLocaleString('en-IN')}.00</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-slate-300 mt-1 text-slate-700" style={{ fontSize: '10px' }}>
+                    <span className="font-bold">Paid To:</span>
+                    <span className="font-bold">{isDual ? (activeAccount === 1 ? acc1Name : acc2Name) : acc1Name}</span>
                   </div>
                 </div>
 
