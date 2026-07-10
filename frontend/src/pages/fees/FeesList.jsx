@@ -818,124 +818,144 @@ export const FeesList = () => {
             </p>
           </div>
 
-          <div id="printable-receipt" className="border border-black p-6 bg-white text-black font-sans mx-auto text-left" style={{ maxWidth: '640px' }}>
-            {/* Top Layout */}
-            <div className="flex justify-between items-start mb-6">
-              <div className="space-y-1">
-                <h2 className="text-base font-black tracking-tight" style={{ fontSize: '18px', fontWeight: '900', color: '#000000' }}>{hostelName}</h2>
-                <div className="text-[10px] font-bold text-slate-700 leading-normal" style={{ whiteSpace: 'pre-line' }}>
-                  {hostelAddress && <>{hostelAddress}<br /></>}
+          <div id="printable-receipt" className="bg-white text-black font-sans mx-auto text-left" style={{ maxWidth: '700px', padding: '32px 40px', fontFamily: 'Arial, sans-serif' }}>
+
+            {/* Row 1: RECEIPT title alone at top right */}
+            <div style={{ textAlign: 'right', marginBottom: '8px' }}>
+              <span style={{ fontSize: '26px', fontWeight: '900', letterSpacing: '3px', color: '#000' }}>RECEIPT</span>
+            </div>
+
+            {/* Row 2: Hostel info (left) + Invoice details (right) */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              {/* Left: Hostel Name + Address */}
+              <div>
+                <div style={{ fontSize: '22px', fontWeight: '900', color: '#000', lineHeight: '1.2', fontFamily: 'Arial, sans-serif' }}>{hostelName}</div>
+                <div style={{ fontSize: '11px', color: '#333', marginTop: '4px', lineHeight: '1.6' }}>
+                  {hostelAddress && hostelAddress.split(',').map((line, i) => (
+                    <span key={i}>{line.trim()}{i < hostelAddress.split(',').length - 1 ? ',' : ''}<br /></span>
+                  ))}
                   {hostelPhone && <>Tel: {hostelPhone}</>}
                 </div>
               </div>
-              <div className="text-right space-y-4">
-                <div className="text-xl font-black tracking-wider text-black">RECEIPT</div>
-                <div className="text-[11px] font-bold text-slate-800 space-y-1">
-                  <div>invoice No : <span className="font-mono">{(activeAccount === 1 ? acc1Prefix : acc2Prefix)}-{printFee.id.slice(-4).toUpperCase()}</span></div>
-                  <div>
-                    invoice Date : <span>
-                      {isEditingDate ? (
-                        <input 
-                          type="date" 
-                          value={customInvoiceDate} 
-                          onChange={(e) => setCustomInvoiceDate(e.target.value)} 
-                          className="border border-slate-300 px-1.5 py-0.5 rounded text-[11px] no-print text-black inline-block cursor-pointer outline-none bg-white"
-                          autoFocus
-                        />
-                      ) : (
-                        formatDisplayDate(customInvoiceDate)
-                      )}
-                    </span>
-                    <button 
-                      onClick={() => setIsEditingDate(!isEditingDate)} 
-                      className="ml-1 text-blue-600 hover:text-blue-800 no-print cursor-pointer"
-                      title="Edit Invoice Date"
-                    >
-                      {isEditingDate ? '💾' : '✏️'}
-                    </button>
-                  </div>
+              {/* Right: Invoice No + Date */}
+              <div style={{ fontSize: '12px', color: '#000', textAlign: 'left', lineHeight: '1.8' }}>
+                <div>
+                  <span style={{ fontWeight: '600' }}>invoice No :</span>
+                  <span style={{ marginLeft: '12px', fontWeight: '700', letterSpacing: '0.5px' }}>
+                    {(isDual ? (activeAccount === 1 ? acc1Prefix : acc2Prefix) : acc1Prefix)}-{printFee.id.slice(-4).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ fontWeight: '600' }}>invoice Date :</span>
+                  <span style={{ marginLeft: '8px', fontWeight: '700' }}>
+                    {isEditingDate ? (
+                      <input
+                        type="date"
+                        value={customInvoiceDate}
+                        onChange={(e) => setCustomInvoiceDate(e.target.value)}
+                        className="no-print"
+                        style={{ border: '1px solid #ccc', padding: '2px 6px', borderRadius: '3px', fontSize: '11px', background: '#fff', color: '#000' }}
+                        autoFocus
+                      />
+                    ) : (
+                      formatDisplayDate(customInvoiceDate)
+                    )}
+                  </span>
+                  <button
+                    onClick={() => setIsEditingDate(!isEditingDate)}
+                    className="no-print"
+                    style={{ marginLeft: '6px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px' }}
+                    title="Edit Invoice Date"
+                  >
+                    {isEditingDate ? '💾' : '✏️'}
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Bill To Box */}
-            <div className="border border-black p-3 mb-6 font-bold text-[11px] leading-relaxed text-black bg-slate-50/50">
-              BILL TO : {printFee.student?.enrollmentNumber || 'N/A'}-{printFee.student?.name || 'N/A'} {printFee.student?.parentName ? (printFee.student.parentName.trim().startsWith('श्री') ? `पिता ${printFee.student.parentName}` : `पिता श्री ${printFee.student.parentName}`) : ''} {printFee.student?.address ? `( ${printFee.student.address} )` : ''}
+            {/* BILL TO Box */}
+            <div style={{ border: '1.5px solid #000', padding: '10px 14px', marginBottom: '16px', fontSize: '13px', fontWeight: '700', color: '#000', lineHeight: '1.5' }}>
+              BILL TO : {printFee.student?.enrollmentNumber || 'N/A'}-{printFee.student?.name || 'N/A'}{' '}
+              {printFee.student?.parentName
+                ? (printFee.student.parentName.trim().startsWith('श्री')
+                  ? `पिता ${printFee.student.parentName}`
+                  : `पिता श्री ${printFee.student.parentName}`)
+                : ''}
+              {printFee.student?.address ? ` ( ${printFee.student.address} )` : ''}
             </div>
 
             {/* Items Table */}
-            <table className="w-full border-collapse border border-black text-[11px] mb-6">
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '12px', fontSize: '12px' }}>
               <thead>
-                <tr className="bg-slate-100 font-bold border-b border-black">
-                  <th className="border border-black p-2 text-center w-12">Srno.</th>
-                  <th className="border border-black p-2 text-left">Description</th>
-                  <th className="border border-black p-2 text-center w-12">Qty</th>
-                  <th className="border border-black p-2 text-right w-24">Price</th>
-                  <th className="border border-black p-2 text-right w-24">Total</th>
+                <tr style={{ backgroundColor: '#e8e8e8', fontWeight: '800' }}>
+                  <th style={{ border: '1.5px solid #000', padding: '8px 10px', textAlign: 'center', width: '60px' }}>Srno.</th>
+                  <th style={{ border: '1.5px solid #000', padding: '8px 10px', textAlign: 'center' }}>Description</th>
+                  <th style={{ border: '1.5px solid #000', padding: '8px 10px', textAlign: 'center', width: '60px' }}>Qty</th>
+                  <th style={{ border: '1.5px solid #000', padding: '8px 10px', textAlign: 'right', width: '100px' }}>Price</th>
+                  <th style={{ border: '1.5px solid #000', padding: '8px 10px', textAlign: 'right', width: '100px' }}>Total</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="font-bold">
-                  <td className="border border-black p-2 text-center">1</td>
-                  <td className="border border-black p-2 text-left">
-                    {printFee.type === 'Monthly' 
-                      ? `${getHindiMonthName(printFee.month)} ${printFee.year}` 
+                <tr style={{ fontWeight: '700' }}>
+                  <td style={{ border: '1.5px solid #000', padding: '10px', textAlign: 'center' }}>1</td>
+                  <td style={{ border: '1.5px solid #000', padding: '10px', textAlign: 'center' }}>
+                    {printFee.type === 'Monthly'
+                      ? `${getHindiMonthName(printFee.month)} ${printFee.year}`
                       : (printFee.type === 'Caution Money' ? 'Caution Money / कॉशन मनी' : printFee.type)}
-                    {!isDual && (
-                      <span className="block text-[9px] text-slate-500 font-semibold mt-0.5">
-                        Account: {acc1Name}
-                      </span>
-                    )}
-                    {isDual && (
-                      <span className="block text-[9px] text-slate-500 font-semibold mt-0.5">
-                        Account: {activeAccount === 1 ? acc1Name : acc2Name}
-                      </span>
-                    )}
                   </td>
-                  <td className="border border-black p-2 text-center">1</td>
-                  <td className="border border-black p-2 text-right">₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</td>
-                  <td className="border border-black p-2 text-right">₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</td>
+                  <td style={{ border: '1.5px solid #000', padding: '10px', textAlign: 'center' }}>1</td>
+                  <td style={{ border: '1.5px solid #000', padding: '10px', textAlign: 'right' }}>
+                    ₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00
+                  </td>
+                  <td style={{ border: '1.5px solid #000', padding: '10px', textAlign: 'right' }}>
+                    ₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00
+                  </td>
                 </tr>
               </tbody>
             </table>
 
-            {/* Totals & Signature layout */}
-            <div className="grid grid-cols-2 gap-4 items-end pt-2">
-              <div className="text-[10px] font-bold text-slate-800 pb-2 space-y-1">
-                <div>Txn ID: <span className="font-mono">{printFee.transactionId || 'N/A'}</span></div>
-                <div>Payment Mode: <span className="font-mono">{printFee.paymentMode || 'N/A'}</span></div>
-                <div>Date: <span>{formatDisplayDate(customInvoiceDate)}</span></div>
-              </div>
-              <div className="space-y-4 text-right">
-                <div className="inline-block space-y-1 font-bold text-[11px] text-right" style={{ minWidth: '180px' }}>
-                  <div className="flex justify-between border-b border-slate-200 pb-1">
-                    <span>Total Amount:</span>
-                    <span>₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-200 py-1">
-                    <span>Subtotal:</span>
-                    <span>₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</span>
-                  </div>
-                  <div className="flex justify-between pt-1 text-slate-900" style={{ fontSize: '12px' }}>
-                    <span>Amount Paid:</span>
-                    <span>₹{(activeAccount === 1 ? printFee.paidAccount1 : printFee.paidAccount2)?.toLocaleString('en-IN')}.00</span>
-                  </div>
-                  <div className="flex justify-between pt-1 border-t border-slate-300 mt-1 text-slate-700" style={{ fontSize: '10px' }}>
-                    <span className="font-bold">Paid To:</span>
-                    <span className="font-bold">{isDual ? (activeAccount === 1 ? acc1Name : acc2Name) : acc1Name}</span>
-                  </div>
-                </div>
+            {/* Totals — right aligned */}
+            <div style={{ textAlign: 'right', fontSize: '12px', fontWeight: '700', marginBottom: '16px', paddingRight: '2px' }}>
+              <div style={{ marginBottom: '3px' }}>Total Amount: ₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</div>
+              <div style={{ marginBottom: '3px' }}>Subtotal: ₹{(activeAccount === 1 ? printFee.amountAccount1 : printFee.amountAccount2)?.toLocaleString('en-IN')}.00</div>
+              <div>Amount Paid: ₹{(activeAccount === 1 ? printFee.paidAccount1 : printFee.paidAccount2)?.toLocaleString('en-IN')}.00</div>
+            </div>
 
-                <div className="pt-4 pr-2">
-                  <div className="text-right">
-                    <span className="font-serif italic text-blue-700 text-lg font-bold block" style={{ fontFamily: 'Georgia, serif', transform: 'rotate(-2deg)' }}>{signatoryName}</span>
-                    <div className="text-[10px] font-black text-slate-800 mt-1 uppercase">For {hostelName}.</div>
-                    <div className="text-[9px] font-bold text-slate-500 tracking-wider">Signature.</div>
-                  </div>
+            {/* Bottom Bar — left: txn info | vertical line | right: signature */}
+            <div style={{ display: 'flex', borderTop: '1.5px solid #000', paddingTop: '12px', marginTop: '4px' }}>
+              {/* Left: Transaction info */}
+              <div style={{ flex: 1, fontSize: '11px', fontWeight: '700', color: '#222', paddingRight: '16px' }}>
+                <div>
+                  {printFee.transactionId ? `ID-${printFee.transactionId}` : `Txn: N/A`}
+                  ---{formatDisplayDate(customInvoiceDate)}
+                </div>
+                <div style={{ marginTop: '3px', color: '#555' }}>
+                  Mode: {printFee.paymentMode || 'N/A'}
+                </div>
+                <div style={{ marginTop: '3px', color: '#555' }}>
+                  Acc: {isDual ? (activeAccount === 1 ? acc1Name : acc2Name) : acc1Name}
+                </div>
+              </div>
+
+              {/* Vertical divider */}
+              <div style={{ width: '1.5px', backgroundColor: '#000', margin: '0 16px' }} />
+
+              {/* Right: Signature */}
+              <div style={{ textAlign: 'right', minWidth: '160px' }}>
+                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '22px', fontWeight: '700', color: '#1a3a8f', transform: 'rotate(-3deg)', display: 'inline-block', marginBottom: '2px' }}>
+                  {signatoryName}
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: '900', color: '#000', textTransform: 'uppercase', marginTop: '2px' }}>
+                  For {hostelName}.
+                </div>
+                <div style={{ fontSize: '10px', fontWeight: '700', color: '#666', letterSpacing: '1px' }}>
+                  Signature.
                 </div>
               </div>
             </div>
+
           </div>
+
         </Modal>
       )}
     </div>
