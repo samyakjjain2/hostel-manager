@@ -73,8 +73,7 @@ export const Dashboard = () => {
     { 
       title: 'Total Students', 
       value: stats?.totalStudents || 0, 
-      trend: '+12 this month', 
-      isUp: true, 
+      sub: `${stats?.activeStudents || 0} Active`, 
       icon: Users, 
       iconBg: 'bg-blue-50 dark:bg-blue-950/20', 
       iconColor: 'text-blue-600 dark:text-blue-400',
@@ -83,8 +82,7 @@ export const Dashboard = () => {
     { 
       title: 'Occupied Beds', 
       value: stats?.occupiedBeds || 0, 
-      trend: '+8 this month', 
-      isUp: true, 
+      sub: `of ${stats?.totalBeds || 0} total beds`, 
       icon: DoorClosed, 
       iconBg: 'bg-emerald-50 dark:bg-emerald-950/20', 
       iconColor: 'text-emerald-600 dark:text-emerald-400',
@@ -93,8 +91,7 @@ export const Dashboard = () => {
     { 
       title: 'Vacant Beds', 
       value: stats?.vacantBeds || 0, 
-      trend: '-4 this month', 
-      isUp: false, 
+      sub: `${stats?.occupancyRate || 0}% occupancy rate`, 
       icon: Bed, 
       iconBg: 'bg-slate-50 dark:bg-slate-800/40', 
       iconColor: 'text-slate-505 dark:text-slate-400',
@@ -102,19 +99,17 @@ export const Dashboard = () => {
     },
     { 
       title: 'Pending Fees', 
-      value: `₹ ${stats?.pendingFees?.toLocaleString() || '0'}`, 
-      trend: 'Split Collection', 
-      isUp: true, 
+      value: `₹ ${stats?.pendingFees?.toLocaleString('en-IN') || '0'}`, 
+      sub: 'Balance due this month', 
       icon: FileText, 
       iconBg: 'bg-orange-50 dark:bg-orange-950/20', 
       iconColor: 'text-orange-600 dark:text-orange-400',
       path: `/fees?status=Pending&month=${new Date().getMonth() + 1}&year=${new Date().getFullYear()}`
     },
     { 
-      title: 'Complaints Log', 
+      title: 'Open Complaints', 
       value: String(stats?.pendingComplaints || 0).padStart(2, '0'), 
-      trend: 'Support Tickets', 
-      isUp: false, 
+      sub: 'Pending & In-Progress', 
       icon: AlertTriangle, 
       iconBg: 'bg-rose-50 dark:bg-rose-950/20', 
       iconColor: 'text-rose-600 dark:text-rose-400',
@@ -123,8 +118,7 @@ export const Dashboard = () => {
     { 
       title: 'Today\'s Visitors', 
       value: stats?.todayVisitors || 0, 
-      trend: 'Visitor Log', 
-      isUp: true, 
+      sub: 'Currently checked in', 
       icon: UserCheck, 
       iconBg: 'bg-purple-50 dark:bg-purple-950/20', 
       iconColor: 'text-purple-600 dark:text-purple-400',
@@ -198,21 +192,12 @@ export const Dashboard = () => {
               </div>
             </div>
 
-            <div className="mt-2 space-y-1">
+              <div className="mt-2 space-y-1">
               <span className="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">
                 {card.value}
               </span>
-              <div className="flex items-center gap-1 text-[10px] font-bold">
-                {card.isUp ? (
-                  <span className="text-emerald-500 flex items-center">
-                    <ArrowUpRight size={12} />
-                  </span>
-                ) : (
-                  <span className="text-rose-500 flex items-center">
-                    <ArrowDownRight size={12} />
-                  </span>
-                )}
-                <span className="text-slate-450 dark:text-zinc-500 font-semibold">{card.trend}</span>
+              <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-450 dark:text-zinc-500">
+                {card.sub}
               </div>
             </div>
           </div>
